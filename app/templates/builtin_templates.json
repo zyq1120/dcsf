@@ -1,0 +1,510 @@
+[
+  {
+    "template_id": "enrollment_proof_v1",
+    "document_type": "在读证明",
+    "description": "用于证明学生当前在校在读状态",
+    "priority": 9,
+    "match_keywords": ["在读证明", "特此证明", "学号", "学院", "学制", "专业", "出生", "身份证", "学校盖章"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "学生姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "department", "field_type": "ORG", "description": "院系/学院"},
+      {"field_name": "major", "field_type": "TEXT", "description": "专业名称"},
+      {"field_name": "study_period", "field_type": "TEXT", "description": "学制/在读年限"},
+      {"field_name": "issue_date", "field_type": "DATE", "description": "开具日期"}
+    ]
+  },
+  {
+    "template_id": "status_proof_v1",
+    "document_type": "学籍证明",
+    "description": "证明学生学籍注册状态",
+    "priority": 9,
+    "match_keywords": ["学籍证明", "教育部学籍", "学籍号", "学号", "入学日期", "培养层次", "学院", "专业", "盖章"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "学生姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号/学籍号"},
+      {"field_name": "enroll_date", "field_type": "DATE", "description": "入学日期"},
+      {"field_name": "education_level", "field_type": "TEXT", "description": "培养层次/学历层次"},
+      {"field_name": "department", "field_type": "ORG", "description": "院系"},
+      {"field_name": "major", "field_type": "TEXT", "description": "专业"},
+      {"field_name": "issue_date", "field_type": "DATE", "description": "开具日期"}
+    ]
+  },
+  {
+    "template_id": "graduation_proof_v1",
+    "document_type": "毕业证明",
+    "description": "证明学生已完成学业并毕业",
+    "priority": 9,
+    "match_keywords": ["毕业证明", "已完成学业", "毕业时间", "学历", "学位", "毕业证", "学号", "学院", "专业"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "major", "field_type": "TEXT", "description": "专业"},
+      {"field_name": "degree", "field_type": "TEXT", "description": "学位/学历"},
+      {"field_name": "graduation_date", "field_type": "DATE", "description": "毕业日期"},
+      {"field_name": "issue_date", "field_type": "DATE", "description": "证明开具日期"}
+    ]
+  },
+  {
+    "template_id": "transcript_proof_v1",
+    "document_type": "成绩证明",
+    "description": "简版成绩成绩证明文件",
+    "priority": 8,
+    "match_keywords": ["成绩证明", "课程成绩", "平均绩点", "总学分", "GPA", "学年", "学期", "学号", "学院"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "gpa", "field_type": "NUMBER", "description": "平均绩点"},
+      {"field_name": "total_credit", "field_type": "NUMBER", "description": "总学分"},
+      {"field_name": "issue_date", "field_type": "DATE", "description": "开具日期"}
+    ]
+  },
+  {
+    "template_id": "general_proof_v1",
+    "document_type": "学校证明类",
+    "description": "通用学校盖章证明类文书",
+    "priority": 7,
+    "match_keywords": ["学校证明", "兹证明", "特此证明", "盖章", "学院", "学生", "身份证", "学号", "申请"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "purpose", "field_type": "TEXT", "description": "证明用途"},
+      {"field_name": "issuer", "field_type": "ORG", "description": "出具单位/学院"},
+      {"field_name": "issue_date", "field_type": "DATE", "description": "出具日期"}
+    ]
+  },
+  {
+    "template_id": "internship_proof_v1",
+    "document_type": "实习证明",
+    "description": "校外/校内实习证明材料",
+    "priority": 8,
+    "match_keywords": ["实习证明", "实习单位", "实习时间", "岗位", "评价", "指导老师", "盖章", "学生", "学号"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "实习学生姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "intern_org", "field_type": "ORG", "description": "实习单位名称"},
+      {"field_name": "intern_position", "field_type": "TEXT", "description": "实习岗位"},
+      {"field_name": "intern_period", "field_type": "TEXT", "description": "实习起止时间"},
+      {"field_name": "issue_date", "field_type": "DATE", "description": "出具日期"}
+    ]
+  },
+  {
+    "template_id": "income_proof_v1",
+    "document_type": "收入证明",
+    "description": "家庭或个人收入状况证明",
+    "priority": 7,
+    "match_keywords": ["收入证明", "月收入", "年收入", "家庭经济", "盖章", "单位", "财务", "税前", "税后"],
+    "required_fields": [
+      {"field_name": "person_name", "field_type": "PERSON", "description": "被证明人姓名"},
+      {"field_name": "org_name", "field_type": "ORG", "description": "开具单位"},
+      {"field_name": "income_amount", "field_type": "NUMBER", "description": "收入金额"},
+      {"field_name": "income_period", "field_type": "TEXT", "description": "收入周期说明"},
+      {"field_name": "issue_date", "field_type": "DATE", "description": "开具日期"}
+    ]
+  },
+  {
+    "template_id": "political_status_proof_v1",
+    "document_type": "政治面貌证明",
+    "description": "党/团员等政治面貌证明",
+    "priority": 7,
+    "match_keywords": ["政治面貌", "党员", "团员", "政治身份", "证明", "组织关系", "党组织", "团组织", "盖章"],
+    "required_fields": [
+      {"field_name": "person_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "org_name", "field_type": "ORG", "description": "党/团组织名称"},
+      {"field_name": "political_status", "field_type": "TEXT", "description": "政治面貌"},
+      {"field_name": "issue_date", "field_type": "DATE", "description": "开具日期"}
+    ]
+  },
+  {
+    "template_id": "tuition_payment_proof_v1",
+    "document_type": "学费缴纳证明",
+    "description": "学费缴纳情况证明",
+    "priority": 8,
+    "match_keywords": ["学费", "缴费", "缴纳证明", "金额", "收据", "票据", "财务处", "学号", "学生"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "学生姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "pay_amount", "field_type": "NUMBER", "description": "缴费金额"},
+      {"field_name": "pay_date", "field_type": "DATE", "description": "缴费日期"},
+      {"field_name": "finance_office", "field_type": "ORG", "description": "收款/财务部门"}
+    ]
+  },
+  {
+    "template_id": "transcript_v1",
+    "document_type": "成绩单",
+    "description": "完整课程成绩单",
+    "priority": 10,
+    "match_keywords": ["成绩单", "课程名称", "学分", "成绩", "绩点", "平均绩点", "总学分", "学期", "学年"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "average_gpa", "field_type": "NUMBER", "description": "平均绩点"},
+      {"field_name": "total_credit", "field_type": "NUMBER", "description": "总学分"},
+      {"field_name": "stat_date", "field_type": "DATE", "description": "统计/打印日期"}
+    ]
+  },
+  {
+    "template_id": "makeup_exam_v1",
+    "document_type": "补考单",
+    "description": "申请或登记补考的表单",
+    "priority": 7,
+    "match_keywords": ["补考", "重考", "课程名称", "考试时间", "补考原因", "任课教师", "批准", "学号"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "学生姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "course_name", "field_type": "TEXT", "description": "补考课程"},
+      {"field_name": "exam_time", "field_type": "DATE", "description": "补考时间"},
+      {"field_name": "reason", "field_type": "TEXT", "description": "补考原因"}
+    ]
+  },
+  {
+    "template_id": "retake_form_v1",
+    "document_type": "重修单",
+    "description": "申请重修课程的表单",
+    "priority": 7,
+    "match_keywords": ["重修", "重修申请", "课程名称", "学分", "任课教师", "学号", "班级", "学期"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "course_name", "field_type": "TEXT", "description": "重修课程"},
+      {"field_name": "semester", "field_type": "TEXT", "description": "重修学期"},
+      {"field_name": "reason", "field_type": "TEXT", "description": "重修原因"}
+    ]
+  },
+  {
+    "template_id": "grade_review_v1",
+    "document_type": "成绩复核申请",
+    "description": "成绩复核/查卷申请",
+    "priority": 7,
+    "match_keywords": ["成绩复核", "查卷", "复查", "成绩", "课程", "任课教师", "学号", "申请原因", "考试时间"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "course_name", "field_type": "TEXT", "description": "课程名称"},
+      {"field_name": "exam_date", "field_type": "DATE", "description": "考试日期"},
+      {"field_name": "review_reason", "field_type": "TEXT", "description": "复核原因"}
+    ]
+  },
+  {
+    "template_id": "leave_request_v1",
+    "document_type": "请假条",
+    "description": "学生请假申请单",
+    "priority": 8,
+    "match_keywords": ["请假", "假条", "请假事由", "请假时间", "辅导员", "批准", "学号", "学生"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "请假人姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "leave_reason", "field_type": "TEXT", "description": "请假事由"},
+      {"field_name": "leave_period", "field_type": "TEXT", "description": "请假起止时间"},
+      {"field_name": "contact_phone", "field_type": "PHONE", "description": "联系电话"}
+    ]
+  },
+  {
+    "template_id": "drop_course_v1",
+    "document_type": "退课申请",
+    "description": "学生退课申请表",
+    "priority": 7,
+    "match_keywords": ["退课", "退选", "课程", "学分", "理由", "教务", "学号", "批准"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "course_name", "field_type": "TEXT", "description": "退课课程"},
+      {"field_name": "reason", "field_type": "TEXT", "description": "退课原因"},
+      {"field_name": "apply_date", "field_type": "DATE", "description": "申请日期"}
+    ]
+  },
+  {
+    "template_id": "course_selection_v1",
+    "document_type": "选课申请",
+    "description": "选课/加退选申请单",
+    "priority": 7,
+    "match_keywords": ["选课", "加选", "退选", "课程代码", "课程名称", "学分", "学号", "教务"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "course_name", "field_type": "TEXT", "description": "课程名称"},
+      {"field_name": "course_code", "field_type": "TEXT", "description": "课程代码"},
+      {"field_name": "apply_reason", "field_type": "TEXT", "description": "申请理由"}
+    ]
+  },
+  {
+    "template_id": "postpone_exam_v1",
+    "document_type": "缓考申请",
+    "description": "因事/病申请缓考",
+    "priority": 7,
+    "match_keywords": ["缓考", "缓考申请", "考试时间", "课程", "病假", "事假", "证明材料", "学号"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "course_name", "field_type": "TEXT", "description": "课程名称"},
+      {"field_name": "exam_date", "field_type": "DATE", "description": "原考试日期"},
+      {"field_name": "postpone_reason", "field_type": "TEXT", "description": "缓考原因"}
+    ]
+  },
+  {
+    "template_id": "major_transfer_v1",
+    "document_type": "转专业申请",
+    "description": "学生转专业申请表",
+    "priority": 8,
+    "match_keywords": ["转专业", "申请", "目标专业", "原专业", "学院", "学号", "辅导员意见", "教务处"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "current_major", "field_type": "TEXT", "description": "原专业"},
+      {"field_name": "target_major", "field_type": "TEXT", "description": "申请转入专业"},
+      {"field_name": "reason", "field_type": "TEXT", "description": "转专业理由"}
+    ]
+  },
+  {
+    "template_id": "suspension_v1",
+    "document_type": "休学申请",
+    "description": "学生休学申请",
+    "priority": 8,
+    "match_keywords": ["休学", "休学申请", "休学时间", "原因", "学号", "学院", "批准", "辅导员"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "suspension_period", "field_type": "TEXT", "description": "休学起止时间"},
+      {"field_name": "reason", "field_type": "TEXT", "description": "休学原因"},
+      {"field_name": "apply_date", "field_type": "DATE", "description": "申请日期"}
+    ]
+  },
+  {
+    "template_id": "resumption_v1",
+    "document_type": "复学申请",
+    "description": "休学后复学申请表",
+    "priority": 8,
+    "match_keywords": ["复学", "复学申请", "休学", "恢复学籍", "学号", "学院", "教务"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "resume_date", "field_type": "DATE", "description": "拟复学日期"},
+      {"field_name": "suspension_period", "field_type": "TEXT", "description": "原休学时间"},
+      {"field_name": "reason", "field_type": "TEXT", "description": "复学原因说明"}
+    ]
+  },
+  {
+    "template_id": "withdrawal_v1",
+    "document_type": "退学申请",
+    "description": "学生主动退学申请",
+    "priority": 8,
+    "match_keywords": ["退学", "退学申请", "原因", "学号", "学院", "导师意见", "教务处", "办理"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "withdraw_reason", "field_type": "TEXT", "description": "退学原因"},
+      {"field_name": "apply_date", "field_type": "DATE", "description": "申请日期"},
+      {"field_name": "contact_phone", "field_type": "PHONE", "description": "联系电话"}
+    ]
+  },
+  {
+    "template_id": "scholarship_apply_v1",
+    "document_type": "奖学金申请",
+    "description": "各类奖学金申请表",
+    "priority": 8,
+    "match_keywords": ["奖学金", "申请", "成绩", "绩点", "排名", "家庭经济", "获奖", "学号", "学院"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "gpa", "field_type": "NUMBER", "description": "绩点/平均分"},
+      {"field_name": "ranking", "field_type": "TEXT", "description": "班级/年级排名"},
+      {"field_name": "apply_reason", "field_type": "TEXT", "description": "申请理由"}
+    ]
+  },
+  {
+    "template_id": "grant_apply_v1",
+    "document_type": "助学金申请",
+    "description": "家庭经济困难助学金申请",
+    "priority": 8,
+    "match_keywords": ["助学金", "困难", "申请", "家庭收入", "补贴", "学号", "学院", "证明材料"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "family_income", "field_type": "NUMBER", "description": "家庭月/年收入"},
+      {"field_name": "difficulty_reason", "field_type": "TEXT", "description": "困难说明"},
+      {"field_name": "contact_phone", "field_type": "PHONE", "description": "联系电话"}
+    ]
+  },
+  {
+    "template_id": "poverty_cert_v1",
+    "document_type": "贫困认定表",
+    "description": "家庭经济困难学生认定表",
+    "priority": 8,
+    "match_keywords": ["贫困认定", "困难认定", "家庭经济", "收入", "佐证材料", "学号", "学院", "调查"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "family_income", "field_type": "NUMBER", "description": "家庭收入"},
+      {"field_name": "family_address", "field_type": "ADDRESS", "description": "家庭住址"},
+      {"field_name": "difficulty_level", "field_type": "TEXT", "description": "困难等级/类型"}
+    ]
+  },
+  {
+    "template_id": "inspire_scholarship_v1",
+    "document_type": "励志奖学金申请",
+    "description": "励志类奖学金申请",
+    "priority": 8,
+    "match_keywords": ["励志奖学金", "申请", "成绩", "绩点", "困难", "表现", "获奖", "学号", "学院"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "gpa", "field_type": "NUMBER", "description": "绩点"},
+      {"field_name": "apply_reason", "field_type": "TEXT", "description": "申请理由"},
+      {"field_name": "awards", "field_type": "TEXT", "description": "获奖/荣誉情况"}
+    ]
+  },
+  {
+    "template_id": "student_loan_apply_v1",
+    "document_type": "国家助学贷款申请",
+    "description": "助学贷款申请表",
+    "priority": 8,
+    "match_keywords": ["助学贷款", "贷款申请", "银行", "金额", "还款", "学号", "家庭困难", "担保"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "loan_amount", "field_type": "NUMBER", "description": "申请贷款金额"},
+      {"field_name": "loan_purpose", "field_type": "TEXT", "description": "贷款用途"},
+      {"field_name": "contact_phone", "field_type": "PHONE", "description": "联系电话"}
+    ]
+  },
+  {
+    "template_id": "scholarship_cert_v1",
+    "document_type": "奖学金获奖证明",
+    "description": "获奖奖学金证明文件",
+    "priority": 7,
+    "match_keywords": ["奖学金", "获奖", "证明", "奖励", "颁发", "学号", "学院", "证书编号"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "award_name", "field_type": "TEXT", "description": "奖学金名称"},
+      {"field_name": "award_date", "field_type": "DATE", "description": "获奖日期"},
+      {"field_name": "issuer", "field_type": "ORG", "description": "颁发单位"}
+    ]
+  },
+  {
+    "template_id": "competition_award_proof_v1",
+    "document_type": "竞赛获奖证明",
+    "description": "竞赛获奖证书或证明",
+    "priority": 7,
+    "match_keywords": ["竞赛", "比赛", "获奖", "证书", "名次", "团队", "个人", "颁发", "指导教师"],
+    "required_fields": [
+      {"field_name": "team_or_person", "field_type": "PERSON", "description": "获奖人/团队代表姓名"},
+      {"field_name": "award_level", "field_type": "TEXT", "description": "奖项级别/名次"},
+      {"field_name": "competition_name", "field_type": "TEXT", "description": "竞赛名称"},
+      {"field_name": "award_date", "field_type": "DATE", "description": "获奖日期"},
+      {"field_name": "issuer", "field_type": "ORG", "description": "颁奖单位"}
+    ]
+  },
+  {
+    "template_id": "thesis_material_v1",
+    "document_type": "毕业论文材料",
+    "description": "毕业论文相关材料（开题、中期、定稿等）",
+    "priority": 6,
+    "match_keywords": ["毕业论文", "开题", "中期", "答辩", "导师", "论文题目", "学号", "学生", "学院"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "thesis_title", "field_type": "TEXT", "description": "论文题目"},
+      {"field_name": "advisor", "field_type": "PERSON", "description": "指导教师"},
+      {"field_name": "stage", "field_type": "TEXT", "description": "阶段（开题/中期/答辩等）"}
+    ]
+  },
+  {
+    "template_id": "job_recommendation_v1",
+    "document_type": "就业推荐表",
+    "description": "毕业生就业推荐表",
+    "priority": 8,
+    "match_keywords": ["就业推荐表", "个人简历", "就业", "求职", "学号", "生源", "成绩排名", "实习"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "major", "field_type": "TEXT", "description": "专业"},
+      {"field_name": "gpa", "field_type": "NUMBER", "description": "绩点/成绩"},
+      {"field_name": "contact_phone", "field_type": "PHONE", "description": "联系电话"}
+    ]
+  },
+  {
+    "template_id": "tripartite_agreement_v1",
+    "document_type": "就业协议书（三方协议）",
+    "description": "毕业生三方就业协议",
+    "priority": 9,
+    "match_keywords": ["就业协议", "三方协议", "用人单位", "毕业生", "学校", "签约", "学号", "合同"],
+    "required_fields": [
+      {"field_name": "graduate_name", "field_type": "PERSON", "description": "毕业生姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "employer", "field_type": "ORG", "description": "用人单位"},
+      {"field_name": "position", "field_type": "TEXT", "description": "职位/岗位"},
+      {"field_name": "sign_date", "field_type": "DATE", "description": "签约日期"}
+    ]
+  },
+  {
+    "template_id": "internship_agreement_v1",
+    "document_type": "实习协议",
+    "description": "学校与实习单位签订的协议",
+    "priority": 7,
+    "match_keywords": ["实习协议", "合作单位", "岗位", "实习期", "学校", "学生", "责任", "安全", "签字"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "学生姓名"},
+      {"field_name": "employer", "field_type": "ORG", "description": "实习单位"},
+      {"field_name": "position", "field_type": "TEXT", "description": "实习岗位"},
+      {"field_name": "intern_period", "field_type": "TEXT", "description": "实习起止时间"},
+      {"field_name": "sign_date", "field_type": "DATE", "description": "签署日期"}
+    ]
+  },
+  {
+    "template_id": "leaving_form_v1",
+    "document_type": "离校手续单",
+    "description": "毕业或退学时的离校办理单",
+    "priority": 7,
+    "match_keywords": ["离校", "手续", "退宿", "借书证", "归还", "财务结算", "盖章", "学号"],
+    "required_fields": [
+      {"field_name": "student_name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "department_clearance", "field_type": "TEXT", "description": "院系清退/签字"},
+      {"field_name": "library_clearance", "field_type": "TEXT", "description": "图书馆清退"},
+      {"field_name": "dorm_clearance", "field_type": "TEXT", "description": "宿舍清退"}
+    ]
+  },
+  {
+    "template_id": "notice_v1",
+    "document_type": "通知公告",
+    "description": "校内通知公告类文档",
+    "priority": 6,
+    "match_keywords": ["通知", "公告", "事项", "请周知", "时间", "地点", "联系人", "电话", "学院"],
+    "required_fields": [
+      {"field_name": "title", "field_type": "TEXT", "description": "通知标题"},
+      {"field_name": "publish_date", "field_type": "DATE", "description": "发布日期"},
+      {"field_name": "content_summary", "field_type": "TEXT", "description": "主要事项概要"},
+      {"field_name": "contact", "field_type": "PERSON", "description": "联系人"},
+      {"field_name": "contact_phone", "field_type": "PHONE", "description": "联系电话"}
+    ]
+  },
+  {
+    "template_id": "meeting_minutes_v1",
+    "document_type": "会议纪要",
+    "description": "会议纪要记录类文档",
+    "priority": 6,
+    "match_keywords": ["会议纪要", "会议时间", "参会人员", "议题", "决议", "会议地点", "主持", "记录"],
+    "required_fields": [
+      {"field_name": "meeting_time", "field_type": "DATE", "description": "会议时间"},
+      {"field_name": "meeting_place", "field_type": "TEXT", "description": "会议地点"},
+      {"field_name": "participants", "field_type": "TEXT", "description": "参会人员"},
+      {"field_name": "agenda", "field_type": "TEXT", "description": "主要议题"},
+      {"field_name": "decisions", "field_type": "TEXT", "description": "会议决议"}
+    ]
+  },
+  {
+    "template_id": "application_form_v1",
+    "document_type": "申请表类",
+    "description": "通用申请表类文档",
+    "priority": 5,
+    "match_keywords": ["申请表", "申请人", "事项", "理由", "审批", "签字", "联系方式", "日期", "部门"],
+    "required_fields": [
+      {"field_name": "applicant_name", "field_type": "PERSON", "description": "申请人姓名"},
+      {"field_name": "apply_reason", "field_type": "TEXT", "description": "申请事项及理由"},
+      {"field_name": "apply_date", "field_type": "DATE", "description": "申请日期"},
+      {"field_name": "contact_phone", "field_type": "PHONE", "description": "联系电话"},
+      {"field_name": "department", "field_type": "ORG", "description": "申请部门/学院"}
+    ]
+  }
+]

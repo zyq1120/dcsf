@@ -1,0 +1,1970 @@
+{
+  "d43ef6a299930b0413ed2d9ff2a20733": {
+    "extract_details": [
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "安徽工业经济职业技术学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "安徽工业经济职业技术学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "专科",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "民族",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "层次",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "degree_level",
+        "field_type": "TEXT",
+        "field_value": "离校日期",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "education_type",
+        "field_type": "TEXT",
+        "field_value": "学制",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "study_mode",
+        "field_type": "TEXT",
+        "field_value": "学历类别",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "计算机与艺术学院",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "department",
+        "field_type": "ORG",
+        "field_value": "分院",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "status",
+        "field_type": "TEXT",
+        "field_value": "入学日期",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_code",
+        "field_type": "TEXT",
+        "field_value": "AC4NHRD010ZNZYSV",
+        "confidence": 0.95,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_url",
+        "field_type": "TEXT",
+        "field_value": "https://www.chsi.com.cn/xlcx/bgcx.jsp",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "b26d927c4d5adb7c8ac95a4a3971c97e": {
+    "extract_details": [
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "民族",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "层次",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "degree_level",
+        "field_type": "TEXT",
+        "field_value": "预计毕业日期",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "education_type",
+        "field_type": "TEXT",
+        "field_value": "学制",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "study_mode",
+        "field_type": "TEXT",
+        "field_value": "学历类别",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "②使用学信网App扫描二维码验证",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "department",
+        "field_type": "ORG",
+        "field_value": "分院",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "status",
+        "field_type": "TEXT",
+        "field_value": "入学日期",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_url",
+        "field_type": "TEXT",
+        "field_value": "https://www.chsi.com.cn/xlcx/bgcx.jsp",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "4767119bb1caebcda85108f77f68582e": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "开户行",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "address",
+        "field_type": "ADDRESS",
+        "field_value": "学生姓名",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "生源地助学贷款在线服务系统审核学生贷款信息和贵校相关信息，便于我行及时",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "贷款信息和贵校相关信",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "名称",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "账户名称",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "department",
+        "field_type": "ORG",
+        "field_value": "名称",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_code",
+        "field_type": "TEXT",
+        "field_value": "4363011120242001",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "fb3abf5d31143be4fc8b0ef7608582f3": {
+    "extract_details": [
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "当代大学",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "当代大学",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "date",
+        "field_type": "DATE",
+        "field_value": "2025-10-04",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "国家安全教育",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "当代大学",
+        "confidence": 0.99,
+        "status": "ok"
+      }
+    ]
+  },
+  "1585ff25856fa2cbae608de707e9e40b": {
+    "extract_details": [
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "当代大学",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "当代大学",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "国京安全教育",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "当代大学",
+        "confidence": 0.99,
+        "status": "ok"
+      }
+    ]
+  },
+  "08b3f1328befd8ab2c962504f779f881": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "账号",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "address",
+        "field_type": "ADDRESS",
+        "field_value": "学生姓名",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "生源地助学贷款在线服务系统审核学生贷款信息和贵校相关信息，便于我行及时",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "贷款信息和贵校相关信",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "名称",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "账户名称",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "department",
+        "field_type": "ORG",
+        "field_value": "名称",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_code",
+        "field_type": "TEXT",
+        "field_value": "4363011120242001",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "5e134609a5a2eb69265b2e370c3937c5": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "离校日期",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "安徽工业经济职业技术学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "安徽工业经济职业技术学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "普通全日制",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "离校日期",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "民族",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "系所",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "degree_level",
+        "field_type": "TEXT",
+        "field_value": "学校名称",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "study_mode",
+        "field_type": "TEXT",
+        "field_value": "学历类别",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "学习形式",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "department",
+        "field_type": "ORG",
+        "field_value": "②使用学信网App扫描二维码验证",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "status",
+        "field_type": "TEXT",
+        "field_value": "入学日期",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_url",
+        "field_type": "TEXT",
+        "field_value": "https://www.chsi.com.cn/xlcx/bgcx.jsp",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "fb527f7c6a966698ce705e690b58e97e": {
+    "extract_details": [
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "MINISTRY",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_code",
+        "field_type": "TEXT",
+        "field_value": "IONSAUTHORITY",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "fb286cecdaf583b6376edf7d3600de1f": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "student_id",
+        "field_type": "STUDENT_ID",
+        "field_value": "242040390",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "所属学校",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "所属学校",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "340801252117128",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "所属学校：",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "大数据与人【智能学院",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "软升243",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "department",
+        "field_type": "ORG",
+        "field_value": "班级：",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_code",
+        "field_type": "TEXT",
+        "field_value": "340801252117128",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "8a09713d0fe4a9085f41da2bbb4f7056": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "student_id",
+        "field_type": "STUDENT_ID",
+        "field_value": "242040390",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "2025年下半年全国大学",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "2025年下半年全国大学",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "填写在试题册背面",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "大数据与人工智能学院 软升243",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "gender",
+        "field_type": "TEXT",
+        "field_value": "男",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "，并用HB-2B铅笔将对应准考证号的信息点涂",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "院系班级：大数据与人工智能学院",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "department",
+        "field_type": "ORG",
+        "field_value": "班级：大数据与人工智能学院",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_code",
+        "field_type": "TEXT",
+        "field_value": "340801252117128",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "e31bbd3916056236c7bbf9f3176e5b60": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "address",
+        "field_type": "ADDRESS",
+        "field_value": "安徽省_宿州市_砀山县_官庄镇黄集村周庄",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "date",
+        "field_type": "DATE",
+        "field_value": "2025-08-25",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "用款期限",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "名称",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "就读高校",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "department",
+        "field_type": "ORG",
+        "field_value": "名称",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_code",
+        "field_type": "TEXT",
+        "field_value": "341321200211201034",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "a0868a018619ca9fc199fba30fcd6ce0": {
+    "extract_details": [
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "当代大学",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "当代大学",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "date",
+        "field_type": "DATE",
+        "field_value": "2025-10-04",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "国家安全教育",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "当代大学",
+        "confidence": 0.99,
+        "status": "ok"
+      }
+    ]
+  },
+  "1c6f2f2407425fc2c70d5a85722e2bb5": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "安徽工业经济职业技术学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "安徽工业经济职业技术学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "周宇清",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "gender",
+        "field_type": "TEXT",
+        "field_value": "男",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "安徽工业经济职业技术学院",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "软件技术",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "degree_level",
+        "field_type": "TEXT",
+        "field_value": "专科",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "education_type",
+        "field_type": "TEXT",
+        "field_value": "普通高等教育",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "study_mode",
+        "field_type": "TEXT",
+        "field_value": "普通全日制",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "层次",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "department",
+        "field_type": "ORG",
+        "field_value": "计算机与艺术学院",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "status",
+        "field_type": "TEXT",
+        "field_value": "不在籍",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_url",
+        "field_type": "TEXT",
+        "field_value": "https://www.chsi.com.cn/xlcx/bgcx.jsp",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "3dbebfaa31553112435923db04b364fc": {
+    "extract_details": [
+      {
+        "field_name": "id_number",
+        "field_type": "ID_NUMBER",
+        "field_value": "341282200212154935",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "24683400186130",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_code",
+        "field_type": "TEXT",
+        "field_value": "NATIONALCOMPUTERRANKEXAMINATION",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "752e4da167cddc348a1a21c1a74a5ca0": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "education_type",
+        "field_type": "TEXT",
+        "field_value": "普通高等教育",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "本科",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "department",
+        "field_type": "ORG",
+        "field_value": "大数据与人工智能学院",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "status",
+        "field_type": "TEXT",
+        "field_value": "在籍",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_code",
+        "field_type": "TEXT",
+        "field_value": "341321200211201034",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "48a22e13b42a371c29df7cac4caf6a0d": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "周宇清",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "gender",
+        "field_type": "TEXT",
+        "field_value": "男",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "软件工程",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "degree_level",
+        "field_type": "TEXT",
+        "field_value": "本科",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "education_type",
+        "field_type": "TEXT",
+        "field_value": "普通高等教育",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "study_mode",
+        "field_type": "TEXT",
+        "field_value": "普通全日制",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "层次",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "department",
+        "field_type": "ORG",
+        "field_value": "大数据与人工智能学院",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "status",
+        "field_type": "TEXT",
+        "field_value": "在籍",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_url",
+        "field_type": "TEXT",
+        "field_value": "https://www.chsi.com.cn/xlcx/bgcx.jsp",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "c1c7a503bd055576a1789794b05eeaae": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清性别男、二OO二年十一月二十日生、于二O二一",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "id_number",
+        "field_type": "ID_NUMBER",
+        "field_value": "123341202406003360",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "普通高等学校",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "普通高等学校",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "123341202406003360",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "学生周宇清",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "周宇清性别男、二OO",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "gender",
+        "field_type": "TEXT",
+        "field_value": "男",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "三年制专科学习、修完教学计划规定的全部课程，成绩合",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_code",
+        "field_type": "TEXT",
+        "field_value": "123341202406003360",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "507f88d09802c2951838b6b0d6d4e89b": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "。考试内容",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "id_number",
+        "field_type": "ID_NUMBER",
+        "field_value": "341321200211201034",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "issuer",
+        "field_type": "ORG",
+        "field_value": "全国大学",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "admission_school",
+        "field_type": "ORG",
+        "field_value": "全国大学",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "reason",
+        "field_type": "TEXT",
+        "field_value": "?",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "251134080000426",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "。考试内容",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "全国大学",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "2．CET笔试考试时间为每年6月和12月；CET口试考试",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_code",
+        "field_type": "TEXT",
+        "field_value": "5OYRKMVAD0MCOFTE",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "ed5683ccb6301f1f45a320f38b0729f7": {
+    "extract_details": [
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "708",
+        "confidence": 0.8,
+        "status": "ok"
+      }
+    ]
+  },
+  "8de29d651bdd66963da1c8a262b32f6d": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "student_id",
+        "field_type": "STUDENT_ID",
+        "field_value": "242040390",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "address",
+        "field_type": "ADDRESS",
+        "field_value": "_江苏省南京市",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "reason",
+        "field_type": "TEXT",
+        "field_value": "1、论文调研、实习；",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "软升243",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "姓名及手机：",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.99,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "班级：软升243",
+        "confidence": 0.98,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "2026届毕业生请、销假单",
+        "confidence": 0.97,
+        "status": "ok"
+      },
+      {
+        "field_name": "verify_code",
+        "field_type": "TEXT",
+        "field_value": "18689221796",
+        "confidence": 0.95,
+        "status": "ok"
+      }
+    ]
+  },
+  "870cd7112ac4cd5dabc885d99eb6d47f": {
+    "extract_details": [
+      {
+        "field_name": "student_id",
+        "field_type": "STUDENT_ID",
+        "field_value": "20201234",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "学生张三",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "，请假三天。",
+        "confidence": 0.8,
+        "status": "ok"
+      }
+    ]
+  },
+  "50abe0c5040e56e729c873e8d365ccf1": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.95,
+        "status": "ok"
+      },
+      {
+        "field_name": "student_id",
+        "field_type": "STUDENT_ID",
+        "field_value": "242040390",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "address",
+        "field_type": "ADDRESS",
+        "field_value": "_江苏省南京市",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "date",
+        "field_type": "DATE",
+        "field_value": "1、（调研、实习等）单位名称、地址：_江苏省南京市",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "reason",
+        "field_type": "TEXT",
+        "field_value": "1、论文调研、实习；",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "软升243",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "姓名及手机：",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.85,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "2026届毕业生请、销假单",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "软升243",
+        "confidence": 0.8,
+        "status": "ok"
+      }
+    ]
+  },
+  "8190a1f954b5bad2c8cd0e725f88292a": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "及手机：周和平",
+        "confidence": 0.95,
+        "status": "ok"
+      },
+      {
+        "field_name": "address",
+        "field_type": "ADDRESS",
+        "field_value": "外出地点、时间：",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "reason",
+        "field_type": "TEXT",
+        "field_value": "本人联系方式如有变更，第一时间告知辅导员老师与指导老师；",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "辅导员老师意见",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "姓名及手机：周和平",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "1、在离校期间，保证按学校",
+        "confidence": 0.85,
+        "status": "ok"
+      }
+    ]
+  },
+  "274bd7c759ce14287d6eece6ebc15d1d": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "职业发展与就业指导1",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "date",
+        "field_type": "DATE",
+        "field_value": "2025-10-04",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "学年度",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "国家安全教育",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "当代大学",
+        "confidence": 0.85,
+        "status": "ok"
+      }
+    ]
+  },
+  "f9ca8b52545812e5636fb7f68e0fa3e9": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.95,
+        "status": "ok"
+      },
+      {
+        "field_name": "address",
+        "field_type": "ADDRESS",
+        "field_value": "安徽省_宿州市_砀山县_官庄镇黄集村周庄",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "date",
+        "field_type": "DATE",
+        "field_value": "0000.00",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "用款期限",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "安徽省农村信用社联合",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "phone",
+        "field_type": "PHONE",
+        "field_value": "13212002112",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.85,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "就读高校",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "（专升本）软件工程",
+        "confidence": 0.8,
+        "status": "ok"
+      }
+    ]
+  },
+  "07d628c6292a81708bf5927adc45ed20": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "。考试内容",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "id_number",
+        "field_type": "ID_NUMBER",
+        "field_value": "341321200211201034",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "date",
+        "field_type": "DATE",
+        "field_value": "为每年6月和12月；CET口试考试",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "reason",
+        "field_type": "TEXT",
+        "field_value": "?",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "251134080000426",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "全国大学英语四级考试",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "。考试内容",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "phone",
+        "field_type": "PHONE",
+        "field_value": "13212002112",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "全国大学",
+        "confidence": 0.85,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "2．CET笔试考试时间为每年6月和12月；CET口试考试",
+        "confidence": 0.8,
+        "status": "ok"
+      }
+    ]
+  },
+  "3eb64e5b87281044134a93f3e764b6df": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.95,
+        "status": "ok"
+      },
+      {
+        "field_name": "date",
+        "field_type": "DATE",
+        "field_value": "民族",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "周宇清",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "gender",
+        "field_type": "TEXT",
+        "field_value": "男",
+        "confidence": 0.85,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "安徽工业经济职业技术学院",
+        "confidence": 0.85,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "层次",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "软件技术",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "status",
+        "field_type": "TEXT",
+        "field_value": "不在籍",
+        "confidence": 0.75,
+        "status": "ok"
+      }
+    ]
+  },
+  "a5b4cd9b85a73fbc50c03cd1a2b79a14": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清",
+        "confidence": 0.95,
+        "status": "ok"
+      },
+      {
+        "field_name": "student_id",
+        "field_type": "STUDENT_ID",
+        "field_value": "242040390",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "address",
+        "field_type": "ADDRESS",
+        "field_value": "_江苏省南京市",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "date",
+        "field_type": "DATE",
+        "field_value": "1、（调研、实习等）单位名称、地址：_江苏省南京市",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "reason",
+        "field_type": "TEXT",
+        "field_value": "1、论文调研、实习；",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "软升243",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "姓名及手机：",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "马鞍山学院",
+        "confidence": 0.85,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "2026届毕业生请、销假单",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "软升243",
+        "confidence": 0.8,
+        "status": "ok"
+      }
+    ]
+  },
+  "b48b4735852bda5b71c9a549871a9bd6": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清性别男、二OO二年十一月二十日生、于二O二一",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "id_number",
+        "field_type": "ID_NUMBER",
+        "field_value": "123341202406003360",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "123341202406003360",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "普通高等学校",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "周宇清性别男、二OO",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "gender",
+        "field_type": "TEXT",
+        "field_value": "男",
+        "confidence": 0.85,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "普通高等学校",
+        "confidence": 0.85,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "校（院）长：",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "三年制专科学习、修完教学计划规定的全部课程，成绩合",
+        "confidence": 0.8,
+        "status": "ok"
+      }
+    ]
+  },
+  "40d9e31e56149521d8f857abe3e19b4d": {
+    "extract_details": [
+      {
+        "field_name": "name",
+        "field_type": "PERSON",
+        "field_value": "周宇清性别男、二〇O二年十一月二十日生、于二〇二一",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "id_number",
+        "field_type": "ID_NUMBER",
+        "field_value": "123341202406003360",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "certificate_id",
+        "field_type": "CERT_ID",
+        "field_value": "123341202406003360",
+        "confidence": 0.9,
+        "status": "ok"
+      },
+      {
+        "field_name": "class",
+        "field_type": "CLASS",
+        "field_value": "普通高等学校",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "contact",
+        "field_type": "PERSON",
+        "field_value": "周宇清性别男、二〇O",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "gender",
+        "field_type": "TEXT",
+        "field_value": "男",
+        "confidence": 0.85,
+        "status": "ok"
+      },
+      {
+        "field_name": "school_name",
+        "field_type": "ORG",
+        "field_value": "普通高等学校",
+        "confidence": 0.85,
+        "status": "ok"
+      },
+      {
+        "field_name": "college",
+        "field_type": "ORG",
+        "field_value": "校（院）长：",
+        "confidence": 0.8,
+        "status": "ok"
+      },
+      {
+        "field_name": "major",
+        "field_type": "TEXT",
+        "field_value": "三年制专科学习、修完教学计划规定的全部课程，成绩合",
+        "confidence": 0.8,
+        "status": "ok"
+      }
+    ]
+  }
+}

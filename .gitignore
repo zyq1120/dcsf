@@ -1,0 +1,90 @@
+# =====================
+# Python
+# =====================
+# Byte-compiled / optimized / DLL files
+__pycache__/
+*.py[cod]
+*$py.class
+
+# C extensions
+*.pyd
+*.so
+*.dll
+
+# Distribution / packaging
+*.egg
+*.egg-info/
+dist/
+build/
+*.whl
+
+# Virtual environments
+venv/
+.venv/
+ENV/
+env/
+env.bak/
+venv.bak/
+
+# =====================
+# Secrets / Configs
+# =====================
+.env
+.env.*
+.history/
+*.key
+*.pem
+*.crt
+
+# =====================
+# IDEs / Editors
+# =====================
+# PyCharm / IntelliJ
+.idea/
+*.iml
+*.iws
+*.ipr
+
+# VS Code
+.vscode/
+
+# =====================
+# Python test / coverage
+# =====================
+.pytest_cache/
+.coverage
+htmlcov/
+*.cover
+.coverage.*
+
+# =====================
+# OS files
+# =====================
+.DS_Store
+Thumbs.db
+desktop.ini
+
+# =====================
+# Docker
+# =====================
+docker-compose.override.yml
+*.log
+
+# =====================
+# Large ML / AI dependencies (never push binaries)
+# =====================
+*.pyd
+*.dll
+*.so
+*.whl
+paddle/
+torch/
+tensorflow/
+
+# =====================
+# Misc
+# =====================
+*.bak
+*.swp
+*.swo
+*.tmp
