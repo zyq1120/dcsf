@@ -1,0 +1,836 @@
+<!DOCTYPE html>
+<html lang="zh-CN">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <title>AI 文档助手</title>
+    <link
+      href="https://fonts.googleapis.com/css2?family=Inter:wght@400;500;600&display=swap"
+      rel="stylesheet"
+    />
+    <style>
+      :root {
+        --bg: #f6f7fb;
+        --surface: #ffffff;
+        --text: #1f2329;
+        --muted: #666;
+        --border: #e5e7eb;
+        --accent: #2563eb;
+        --accent-2: #a855f7;
+        --glow: rgba(37, 99, 235, 0.08);
+      }
+
+      * {
+        box-sizing: border-box;
+      }
+      body {
+        margin: 0;
+        font-family: "Inter", system-ui, -apple-system, BlinkMacSystemFont,
+          "Segoe UI", sans-serif;
+        background: var(--bg);
+        color: var(--text);
+        -webkit-font-smoothing: antialiased;
+      }
+
+      .topbar {
+        position: sticky;
+        top: 0;
+        z-index: 10;
+        display: flex;
+        align-items: center;
+        justify-content: space-between;
+        padding: 14px 20px;
+        background: rgba(255, 255, 255, 0.9);
+        border-bottom: 1px solid var(--border);
+        backdrop-filter: blur(6px);
+      }
+      .brand {
+        display: flex;
+        align-items: center;
+        gap: 10px;
+        font-weight: 700;
+        font-size: 18px;
+      }
+      .brand-mark {
+        width: 28px;
+        height: 28px;
+        border-radius: 8px;
+        background: linear-gradient(135deg, var(--accent), var(--accent-2));
+      }
+      .status {
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        font-size: 12px;
+        color: var(--muted);
+      }
+      .status-dot {
+        width: 10px;
+        height: 10px;
+        border-radius: 50%;
+        background: #f59e0b;
+      }
+
+      .hero {
+        text-align: center;
+        padding: 36px 16px 12px;
+      }
+      .hero h1 {
+        margin: 0 0 8px;
+        font-size: 30px;
+      }
+      .hero p {
+        margin: 0;
+        color: var(--muted);
+        line-height: 1.6;
+      }
+
+      .layout {
+        max-width: 1200px;
+        margin: 0 auto 60px;
+        padding: 0 16px;
+        display: grid;
+        grid-template-columns: 420px 1fr;
+        gap: 16px;
+      }
+
+      .panel {
+        background: var(--surface);
+        border: 1px solid var(--border);
+        border-radius: 14px;
+        padding: 16px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.04);
+      }
+      .panel h3 {
+        margin: 0 0 8px;
+        font-size: 16px;
+      }
+      .panel small {
+        color: var(--muted);
+      }
+
+      .stack {
+        display: flex;
+        flex-direction: column;
+        gap: 10px;
+      }
+      label {
+        font-size: 13px;
+        color: var(--muted);
+      }
+      .input {
+        width: 100%;
+        padding: 10px 12px;
+        border-radius: 10px;
+        border: 1px solid var(--border);
+        background: #fff;
+        font-size: 14px;
+        transition: border-color 0.2s, box-shadow 0.2s;
+      }
+      .input:focus,
+      textarea:focus {
+        outline: none;
+        border-color: var(--accent);
+        box-shadow: 0 0 0 3px rgba(37, 99, 235, 0.2);
+      }
+      textarea {
+        resize: vertical;
+        min-height: 120px;
+      }
+
+      .option-row {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+      }
+      .checkbox {
+        display: inline-flex;
+        align-items: center;
+        gap: 6px;
+        padding: 8px 10px;
+        border: 1px solid var(--border);
+        border-radius: 10px;
+        background: #fafafa;
+        cursor: pointer;
+        font-size: 13px;
+      }
+
+      .btn {
+        padding: 11px 14px;
+        border-radius: 12px;
+        border: 1px solid var(--border);
+        background: #fff;
+        font-weight: 600;
+        cursor: pointer;
+        transition: transform 0.15s, box-shadow 0.15s, border-color 0.15s;
+      }
+      .btn:hover {
+        transform: translateY(-1px);
+        border-color: var(--accent);
+      }
+      .btn.primary {
+        background: linear-gradient(135deg, #0f172a, #111827);
+        color: #fff;
+        border-color: #0f172a;
+      }
+      .btn.primary:hover {
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+      }
+      .btn.ghost {
+        background: #f8f9fc;
+      }
+
+      .image-frame {
+        position: relative;
+        border: 1px dashed var(--border);
+        border-radius: 14px;
+        min-height: 260px;
+        overflow: hidden;
+        background: #fdfdfd;
+        display: flex;
+        align-items: center;
+        justify-content: center;
+      }
+      .image-frame img,
+      .image-frame video {
+        max-width: 100%;
+        max-height: 100%;
+        object-fit: contain;
+        display: none;
+      }
+      .image-frame.active img {
+        display: block;
+      }
+      .image-frame.show-video video {
+        display: block;
+      }
+      .image-placeholder {
+        text-align: center;
+        color: var(--muted);
+        font-size: 14px;
+      }
+      .skeleton {
+        position: absolute;
+        inset: 0;
+        background: linear-gradient(
+            120deg,
+            rgba(255, 255, 255, 0.2) 30%,
+            rgba(255, 255, 255, 0.55) 40%,
+            rgba(255, 255, 255, 0.2) 50%
+          ),
+          rgba(37, 99, 235, 0.12);
+        background-size: 200% 100%;
+        animation: shimmer 1.6s linear infinite;
+        opacity: 0;
+        pointer-events: none;
+      }
+      .image-frame.is-loading .skeleton {
+        opacity: 1;
+      }
+      .image-frame.is-loading img {
+        opacity: 0.25;
+      }
+      @keyframes shimmer {
+        0% {
+          background-position: 200% 0;
+        }
+        100% {
+          background-position: -200% 0;
+        }
+      }
+
+      .output {
+        background: #fbfbfb;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+      }
+      .chips {
+        display: flex;
+        flex-wrap: wrap;
+        gap: 8px;
+        margin-bottom: 8px;
+      }
+      .chip {
+        padding: 6px 10px;
+        border-radius: 999px;
+        background: #fff;
+        border: 1px solid var(--border);
+        font-size: 12px;
+        color: var(--muted);
+      }
+
+      .text-output {
+        position: relative;
+        margin-top: 8px;
+        font-family: "JetBrains Mono", "SFMono-Regular", Consolas, monospace;
+        font-size: 13px;
+        background: #fff;
+        border: 1px solid var(--border);
+        border-radius: 12px;
+        padding: 14px;
+        min-height: 260px;
+        overflow: auto;
+      }
+      .text-output.is-generating {
+        background: linear-gradient(
+          180deg,
+          #fff,
+          rgba(37, 99, 235, 0.08),
+          #fff
+        );
+        animation: glow 3s ease-in-out infinite;
+      }
+      @keyframes glow {
+        0% {
+          box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+        }
+        50% {
+          box-shadow: 0 0 0 8px rgba(168, 85, 247, 0.08);
+        }
+        100% {
+          box-shadow: 0 0 0 0 rgba(37, 99, 235, 0.4);
+        }
+      }
+
+      .key {
+        color: #d73a49;
+      }
+      .string {
+        color: #032f62;
+      }
+      .number {
+        color: #005cc5;
+      }
+      .boolean {
+        color: #005cc5;
+      }
+      .null {
+        color: #6b6b6b;
+      }
+
+      .toast {
+        position: fixed;
+        left: 50%;
+        bottom: 22px;
+        transform: translateX(-50%) translateY(120%);
+        background: #111827;
+        color: #fff;
+        padding: 10px 16px;
+        border-radius: 10px;
+        box-shadow: 0 10px 30px rgba(0, 0, 0, 0.2);
+        font-size: 13px;
+        display: flex;
+        align-items: center;
+        gap: 8px;
+        transition: transform 0.3s ease;
+        z-index: 50;
+      }
+      .toast.show {
+        transform: translateX(-50%) translateY(0);
+      }
+      .toast.error {
+        background: #b42318;
+      }
+
+      @media (max-width: 980px) {
+        .layout {
+          grid-template-columns: 1fr;
+        }
+      }
+    </style>
+  </head>
+  <body>
+    <div class="topbar">
+      <div class="brand">
+        <div class="brand-mark"></div>
+        <span>AI 文档助手</span>
+      </div>
+      <div class="status" id="serverStatus">
+        <div class="status-dot"></div>
+        等待检测后端状态...
+      </div>
+    </div>
+
+    <section class="hero">
+      <h1>高校文档 · OCR + NLP + LLM</h1>
+      <p>
+        支持成绩单、证明类、毕业/学位证、合同等多类型文档。默认自动使用 LLM
+        兜底，输出统一 JSON 结构，可上传图片/PDF 或直接粘贴文本。
+      </p>
+    </section>
+
+    <main class="layout">
+      <section class="panel">
+        <h3>输入</h3>
+        <div class="stack">
+          <div>
+            <label>后端地址</label>
+            <input class="input" id="baseUrl" value="http://127.0.0.1:5000" />
+          </div>
+
+          <div>
+            <label>上传图片 / PDF</label>
+            <input
+              class="input"
+              type="file"
+              id="fileInput"
+              accept="image/*,.pdf"
+            />
+          </div>
+
+          <div class="option-row">
+            <label class="checkbox"
+              ><input type="checkbox" id="enableCamera" /> 启用摄像头</label
+            >
+            <label class="checkbox"
+              ><input type="checkbox" id="llmOnly" /> 仅 LLM</label
+            >
+            <label class="checkbox"
+              ><input type="checkbox" id="disableAI" /> 禁用 LLM</label
+            >
+            <label class="checkbox"
+              ><input type="checkbox" id="useLLM" checked /> 允许 LLM
+              兜底</label
+            >
+            <label class="checkbox"
+              ><input type="checkbox" id="useLLMImage" />
+              多模态兜底（直接读图）</label
+            >
+            <label class="checkbox"
+              ><input type="checkbox" id="autoInfer" checked />
+              自动推断字段</label
+            >
+            <label class="checkbox"
+              ><input type="checkbox" id="analyzeOCR" checked /> 返回 OCR
+              诊断</label
+            >
+            <label class="checkbox"
+              ><input type="checkbox" id="detectTable" checked />
+              表格检测</label
+            >
+            <label class="checkbox"
+              ><input type="checkbox" id="tableForce" /> 强制表格 OCR</label
+            >
+          </div>
+
+          <div class="option-row">
+            <label class="checkbox"
+              ><input type="checkbox" id="enhanceImage" checked />
+              图像增强</label
+            >
+            <label class="checkbox"
+              ><input type="checkbox" id="handwritingMode" />
+              手写增强</label
+            >
+          </div>
+
+          <div class="option-row">
+            <label style="flex: 1">
+              <div>表格检测阈值 (0.002 默认)</div>
+              <input class="input" id="tableThresh" placeholder="0.002" />
+            </label>
+            <label style="flex: 1">
+              <div>LLM Provider</div>
+              <select class="input" id="llmProvider">
+                <option value="">自动</option>
+                <option value="qwen" selected>Qwen (默认)</option>
+                <option value="gemini">Gemini</option>
+                <option value="openai">OpenAI</option>
+              </select>
+            </label>
+          </div>
+
+          <div class="option-row">
+            <label style="flex: 1">
+              <div>LLM 模型</div>
+              <input
+                class="input"
+                id="llmModel"
+                placeholder="文本默认 qwen-plus，读图默认 qwen3-vl-plus"
+              />
+            </label>
+            <label class="checkbox"
+              ><input type="checkbox" id="noTemplate" /> 无模板</label
+            >
+          </div>
+
+          <div>
+            <label>自定义模板（JSON）</label>
+            <textarea
+              class="input"
+              id="customTemplate"
+              placeholder='{"fields": []}'
+            ></textarea>
+          </div>
+
+          <div>
+            <label>文本输入（可选）</label>
+            <textarea
+              class="input"
+              id="textContent"
+              placeholder="若不上传文件，可直接粘贴 OCR 文本"
+            ></textarea>
+          </div>
+
+          <div class="option-row">
+            <button class="btn ghost" onclick="startCamera()">
+              打开摄像头
+            </button>
+            <button class="btn ghost" onclick="capturePhoto()">拍照</button>
+            <button class="btn ghost" onclick="stopCamera()">关闭摄像头</button>
+          </div>
+
+          <div class="image-frame" id="imageFrame">
+            <div class="skeleton"></div>
+            <video
+              id="cameraPreview"
+              autoplay
+              playsinline
+              muted
+              style="display: none"
+            ></video>
+            <img id="previewImage" alt="预览" />
+            <div class="image-placeholder" id="imagePlaceholder">
+              上传/拍照后预览
+            </div>
+          </div>
+
+          <div class="option-row actions">
+            <button class="btn primary" onclick="processDocument()" id="runBtn">
+              开始处理
+            </button>
+            <button class="btn" onclick="resetAll()">重置</button>
+          </div>
+        </div>
+      </section>
+
+      <section class="panel">
+        <h3>输出</h3>
+        <small
+          >统一 JSON，含
+          document_type、confidence、fields、courses、key_value_pairs、page_type、cache
+          提示等</small
+        >
+        <div class="output">
+          <div class="chips">
+            <span class="chip" id="timeChip">耗时：-</span>
+            <span class="chip" id="confChip">置信度：-</span>
+            <span class="chip" id="fieldChip">字段数：-</span>
+            <span class="chip" id="modeChip">模式：-</span>
+            <span class="chip" id="docTypeChip">文档类型：-</span>
+            <span class="chip" id="qualityChip">OCR 质量：-</span>
+            <span class="chip" id="pageTypeChip">页类型：-</span>
+            <span class="chip" id="cacheChip">缓存：-</span>
+            <span class="chip" id="llmChip">LLM：-</span>
+          </div>
+          <div class="text-output" id="jsonOutput">
+            <span class="string">等待响应...</span>
+          </div>
+        </div>
+      </section>
+    </main>
+
+    <div class="toast" id="toast">
+      <span id="toastIcon">✔</span>
+      <span id="toastMsg">提示</span>
+    </div>
+
+    <script>
+      const fileInput = document.getElementById("fileInput");
+      const previewImage = document.getElementById("previewImage");
+      const imageFrame = document.getElementById("imageFrame");
+      const imagePlaceholder = document.getElementById("imagePlaceholder");
+      const cameraPreview = document.getElementById("cameraPreview");
+      const jsonOutput = document.getElementById("jsonOutput");
+      const runBtn = document.getElementById("runBtn");
+
+      let mediaStream = null;
+      let capturedImageDataUrl = "";
+      let isProcessing = false;
+
+      fileInput.addEventListener("change", () => {
+        const file = fileInput.files[0];
+        if (!file) return;
+        const reader = new FileReader();
+        reader.onload = (e) => {
+          capturedImageDataUrl = e.target.result;
+          setImagePreview(capturedImageDataUrl);
+        };
+        reader.readAsDataURL(file);
+      });
+
+      function setImagePreview(src) {
+        if (!src) return;
+        previewImage.src = src;
+        previewImage.style.display = "block";
+        cameraPreview.style.display = "none";
+        imagePlaceholder.style.display = "none";
+        imageFrame.classList.add("active");
+      }
+
+      async function startCamera() {
+        if (!document.getElementById("enableCamera").checked) {
+          showToast("请先勾选“启用摄像头”", "error");
+          return;
+        }
+        try {
+          mediaStream = await navigator.mediaDevices.getUserMedia({
+            video: true,
+          });
+          cameraPreview.srcObject = mediaStream;
+          cameraPreview.style.display = "block";
+          previewImage.style.display = "none";
+          imagePlaceholder.style.display = "none";
+          imageFrame.classList.add("show-video");
+        } catch (e) {
+          showToast("无法打开摄像头：" + e.message, "error");
+        }
+      }
+
+      function stopCamera() {
+        if (mediaStream) {
+          mediaStream.getTracks().forEach((t) => t.stop());
+          mediaStream = null;
+        }
+        cameraPreview.style.display = "none";
+        imageFrame.classList.remove("show-video");
+        if (!capturedImageDataUrl) {
+          imagePlaceholder.style.display = "block";
+        }
+      }
+
+      function capturePhoto() {
+        if (!mediaStream) {
+          showToast("请先打开摄像头", "error");
+          return;
+        }
+        const track = mediaStream.getVideoTracks()[0];
+        const settings = track.getSettings();
+        const canvas = document.createElement("canvas");
+        canvas.width = settings.width || 800;
+        canvas.height = settings.height || 600;
+        const ctx = canvas.getContext("2d");
+        ctx.drawImage(cameraPreview, 0, 0, canvas.width, canvas.height);
+        capturedImageDataUrl = canvas.toDataURL("image/png");
+        setImagePreview(capturedImageDataUrl);
+        showToast("已拍照并使用该画面");
+      }
+
+      function resetAll() {
+        fileInput.value = "";
+        capturedImageDataUrl = "";
+        previewImage.src = "";
+        previewImage.style.display = "none";
+        imagePlaceholder.style.display = "block";
+        jsonOutput.textContent = "等待响应...";
+        document.getElementById("textContent").value = "";
+      }
+
+      async function processDocument() {
+        if (isProcessing) return;
+        const baseUrl = document.getElementById("baseUrl").value.trim();
+        const text = document.getElementById("textContent").value.trim();
+        const llmOnly = document.getElementById("llmOnly").checked;
+        const disableAI = document.getElementById("disableAI").checked;
+        const useLLM = document.getElementById("useLLM").checked;
+        const autoInfer = document.getElementById("autoInfer").checked;
+        const analyzeOCR = document.getElementById("analyzeOCR").checked;
+        const detectTable = document.getElementById("detectTable").checked;
+        const tableForce = document.getElementById("tableForce").checked;
+        const useLLMImage = document.getElementById("useLLMImage").checked;
+        const tableThresh = document.getElementById("tableThresh").value.trim();
+        const enhanceImage = document.getElementById("enhanceImage").checked;
+        const handwritingMode =
+          document.getElementById("handwritingMode").checked;
+        const llmProvider = document.getElementById("llmProvider").value;
+        const llmModel = document.getElementById("llmModel").value.trim();
+        const noTemplate = document.getElementById("noTemplate").checked;
+        const customTemplate = document
+          .getElementById("customTemplate")
+          .value.trim();
+
+        let fileContent = capturedImageDataUrl;
+        let fileName = "upload.png";
+
+        const file = fileInput.files[0];
+        if (file) {
+          fileContent = await toBase64(file);
+          fileName = file.name;
+        }
+
+        if (!text && !fileContent) {
+          showToast("请上传图片/PDF 或输入文本", "error");
+          return;
+        }
+
+        const body = {
+          options: {
+            enhance_image: enhanceImage,
+            handwriting_mode: handwritingMode,
+            llm_only: llmOnly,
+            disable_ai: disableAI,
+            use_llm: useLLM,
+            llm_image: useLLMImage,
+            auto_infer_fields: autoInfer,
+            analyze_ocr: analyzeOCR,
+            detect_table: detectTable,
+            table_force: tableForce,
+          },
+          template_config: {},
+        };
+        if (tableThresh)
+          body.options.table_detect_threshold = parseFloat(tableThresh);
+        if (llmProvider) body.options.llm_provider = llmProvider;
+        if (llmModel) body.options.llm_model = llmModel;
+        if (noTemplate) {
+          body.template_config = {};
+        } else if (customTemplate) {
+          try {
+            body.template_config = JSON.parse(customTemplate);
+          } catch (e) {
+            showToast("自定义模板 JSON 解析失败", "error");
+            toggleLoading(false);
+            return;
+          }
+        }
+        if (text) body.text = text;
+        if (fileContent) {
+          body.file_content = fileContent;
+          body.file_name = fileName;
+        }
+
+        toggleLoading(true);
+        try {
+          const resp = await fetch(`${baseUrl}/api/v1/ai/process`, {
+            method: "POST",
+            headers: { "Content-Type": "application/json" },
+            body: JSON.stringify(body),
+          });
+          const data = await resp.json();
+          renderResult(data, llmOnly, llmProvider || "auto");
+          showToast("处理完成");
+        } catch (err) {
+          showToast("调用失败：" + err.message, "error");
+        } finally {
+          toggleLoading(false);
+        }
+      }
+
+      document.getElementById("disableAI").addEventListener("change", (e) => {
+        if (e.target.checked) {
+          document.getElementById("llmOnly").checked = false;
+          document.getElementById("useLLM").checked = false;
+        }
+      });
+
+      function renderResult(data, llmOnly, provider = "auto") {
+        const payload = data.data ?? data;
+        const processingTime =
+          payload.fields?.processing_time ?? payload.processing_time ?? "-";
+        const conf =
+          payload.fields?.extract_main?.confidence ??
+          payload.confidence_overall ??
+          null;
+        const fieldsCount = payload.fields?.extract_details?.length ?? null;
+        const docType = payload.document_type ?? "-";
+        const docConf = payload.confidence_overall ?? null;
+        const quality = payload.meta?.ocr_quality ?? "-";
+        const problems = payload.ocr_problems ?? [];
+        const pageType = payload?.ocr?.page_type ?? payload?.page_type ?? "-";
+        const cached = payload?.cache_used ? "命中" : "未命中";
+        const llmStatus = payload?.llm_status ?? {};
+
+        document.getElementById(
+          "timeChip"
+        ).innerText = `耗时：${processingTime}s`;
+        document.getElementById("confChip").innerText = conf
+          ? `置信度：${(conf * 100).toFixed(1)}%`
+          : "置信度：-";
+        document.getElementById("fieldChip").innerText = fieldsCount
+          ? `字段数：${fieldsCount}`
+          : "字段数：-";
+        const providerLabel =
+          provider === "auto" || !provider ? "后端配置" : provider;
+        document.getElementById("modeChip").innerText = llmOnly
+          ? `模式：仅 AI (${providerLabel})`
+          : `模式：OCR/NLP + AI（${providerLabel} 兜底）`;
+        document.getElementById("docTypeChip").innerText = docConf
+          ? `文档类型：${docType} (${(docConf * 100).toFixed(1)}%)`
+          : `文档类型：${docType}`;
+        document.getElementById("qualityChip").innerText = problems.length
+          ? `OCR 质量：${quality} / ${problems.join("，")}`
+          : `OCR 质量：${quality}`;
+        document.getElementById(
+          "pageTypeChip"
+        ).innerText = `页类型：${pageType}`;
+        document.getElementById("cacheChip").innerText = `缓存：${cached}`;
+        if (llmStatus.enabled) {
+          const mt = llmStatus.model_text || "qwen-plus";
+          const mv = llmStatus.model_vision || "qwen3-vl-plus";
+          document.getElementById("llmChip").innerText = `LLM：${
+            llmStatus.provider || "qwen"
+          } (文本:${mt} / 读图:${mv})`;
+        } else {
+          document.getElementById("llmChip").innerText = "LLM：已禁用";
+        }
+
+        const jsonStr = JSON.stringify(data, null, 2);
+        jsonOutput.innerHTML = jsonStr.replace(
+          /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\\s*:)?|\\b(true|false|null)\\b|-?\\d+(?:\\.\\d*)?(?:[eE][+\\-]?\\d+)?)/g,
+          (match) => {
+            let cls = "number";
+            if (/^"/.test(match)) {
+              cls = /:$/.test(match) ? "key" : "string";
+            } else if (/true|false/.test(match)) {
+              cls = "boolean";
+            } else if (/null/.test(match)) {
+              cls = "null";
+            }
+            return `<span class="${cls}">${match}</span>`;
+          }
+        );
+      }
+
+      function toggleLoading(loading) {
+        isProcessing = loading;
+        runBtn.disabled = loading;
+        if (loading) {
+          imageFrame.classList.add("is-loading");
+          jsonOutput.classList.add("is-generating");
+        } else {
+          imageFrame.classList.remove("is-loading");
+          jsonOutput.classList.remove("is-generating");
+        }
+      }
+
+      function toBase64(file) {
+        return new Promise((resolve, reject) => {
+          const reader = new FileReader();
+          reader.onload = () => resolve(reader.result);
+          reader.onerror = (err) => reject(err);
+          reader.readAsDataURL(file);
+        });
+      }
+
+      function showToast(msg, type = "success") {
+        const toast = document.getElementById("toast");
+        document.getElementById("toastMsg").innerText = msg;
+        document.getElementById("toastIcon").innerText =
+          type === "success" ? "✔" : "⚠";
+        toast.classList.toggle("error", type === "error");
+        toast.classList.add("show");
+        setTimeout(() => toast.classList.remove("show"), 2600);
+      }
+
+      // 简单心跳提示
+      setInterval(() => {
+        const status = document.getElementById("serverStatus");
+        const dot = status.querySelector(".status-dot");
+        if (dot) dot.style.background = "#34c759";
+        status.innerHTML =
+          '<div class="status-dot" style="background:#34c759"></div>后端就绪 (Gemini 需保证代理/VPN 正常)';
+      }, 2000);
+    </script>
+  </body>
+</html>

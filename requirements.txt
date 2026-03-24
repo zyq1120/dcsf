@@ -1,0 +1,36 @@
+# Flask for building web APIs
+Flask==3.0.0
+Flask-CORS==4.0.0
+
+# OCR and Image Processing
+paddleocr==2.7.0.3
+paddlepaddle>=2.6.1
+opencv-python==4.6.0.66
+Pillow>=10.0.0
+pdf2image==1.17.0
+
+
+# Mathematical Computation
+numpy==1.24.3
+
+# HTTP and Configuration Management
+requests>=2.31.0
+python-dotenv>=1.0.0
+
+# Logging
+loguru>=0.7.2
+
+# Data Validation and Modeling
+pydantic>=2.5.0
+
+# Testing Frameworks and Coverage
+pytest>=7.4.0
+pytest-cov>=4.1.0
+pytest-html>=4.1.1
+coverage<7
+iniconfig<2.0
+
+# Deep Learning and NLP
+transformers>=4.35.0
+torch>=2.1.0
+spacy>=3.7.0
