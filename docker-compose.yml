@@ -1,0 +1,13 @@
+version: "3.9"
+
+services:
+  ai-service:
+    build: . 
+    container_name: document-classification-flask
+    ports:
+      - "${OCR_SERVICE_PORT:-5000}:5000"
+    environment:
+      TZ: Asia/Shanghai
+    volumes:
+      - /opt/paddleocr_cache:/home/appuser/.paddleocr
+    restart: unless-stopped
