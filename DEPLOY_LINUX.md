@@ -77,14 +77,26 @@ git clone <your-repo-url> document_classification_system_flask
 cd document_classification_system_flask
 ```
 
-### 3.2 创建 venv 并安装依赖
+
+### 3.2 安装依赖（两种方式）
+
+方式 A（推荐）：使用 `venv`
 
 ```bash
 python3 -m venv venv
 source venv/bin/activate
-pip install -U pip
-pip install -r requirements.txt
+python -m pip install -U pip
+python -m pip install -r requirements.txt
 ```
+
+方式 B（可选）：不使用虚拟环境（仅建议开发机）
+
+```bash
+python3 -m pip install -U pip
+python3 -m pip install -r requirements.txt
+```
+
+> 说明：生产环境建议优先使用方式 A，避免系统 Python 被污染或与其他服务发生依赖冲突。
 
 > 注意：PaddlePaddle / PaddleOCR 在不同平台需要匹配版本。以 `requirements.txt` 为准。
 
@@ -104,19 +116,29 @@ export USE_GPU=false
 
 ### 3.4 启动（开发模式，不推荐生产）
 
+若使用方式 A（已激活 `venv`）：
+
 ```bash
 python app.py
+```
+
+若使用方式 B（不使用 `venv`）：
+
+```bash
+python3 app.py
 ```
 
 ---
 
 ## 4. 生产部署（推荐：gunicorn + systemd）
 
+> 建议：生产环境默认使用虚拟环境（`venv`），以下命令按该前提给出。
+
 ### 4.1 gunicorn 安装
 
 ```bash
 source venv/bin/activate
-pip install gunicorn
+python -m pip install gunicorn
 ```
 
 ### 4.2 进程/线程建议（非常重要）
@@ -136,7 +158,7 @@ PaddleOCR 在部分环境下可能会因为线程与底层算子选择导致偶�
 
 ```bash
 source venv/bin/activate
-gunicorn -w 4 -k gthread --threads 1 -b 0.0.0.0:5000 app:app
+gunicorn -w 4 -k gthread --threads 1 -b 0.0.0.0:5005 app:app
 ```
 
 > 如果你使用 `create_app` 工厂模式，请改为对应入口（例如 `app:create_app()` 的 WSGI 包装）。
@@ -162,7 +184,7 @@ Type=simple
 WorkingDirectory=/opt/document_classification_system_flask
 
 EnvironmentFile=/opt/document_classification_system_flask/.env
-ExecStart=/opt/document_classification_system_flask/venv/bin/gunicorn -w 4 -k gthread --threads 1 -b 0.0.0.0:5000 app:app
+ExecStart=/opt/document_classification_system_flask/venv/bin/gunicorn -w 4 -k gthread --threads 1 -b 0.0.0.0:5005 app:app
 Restart=always
 RestartSec=3
 
@@ -255,9 +277,9 @@ docker-compose up -d
 健康检查：
 
 ```bash
-curl -s http://127.0.0.1:5000/health
-curl -s http://127.0.0.1:5000/api/v1/health
-curl -s http://127.0.0.1:5000/api/v1/ocr/health
+curl -s http://127.0.0.1:5005/health
+curl -s http://127.0.0.1:5005/api/v1/health
+curl -s http://127.0.0.1:5005/api/v1/ocr/health
 ```
 
 核心接口：

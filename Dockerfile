@@ -29,8 +29,8 @@ COPY . .
 RUN useradd -m appuser && chown -R appuser:appuser /app
 USER appuser
 
-EXPOSE 5000
+EXPOSE 5005
 
 # ---------- production server ----------
 # app:app  =>  app.py 里的 Flask 实例变量名是 app
-CMD ["gunicorn","-w","2","-k","gthread","--threads","8","-b","0.0.0.0:5000","--timeout","120","--access-logfile","-","--error-logfile","-","app:app"]
+CMD ["gunicorn","-w","2","-k","gthread","--threads","8","-b","0.0.0.0:5005","--timeout","120","--access-logfile","-","--error-logfile","-","app:app"]

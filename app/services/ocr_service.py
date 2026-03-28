@@ -38,8 +38,7 @@ class OCRService:
         init_kwargs = dict(
             use_angle_cls=settings.OCR_USE_ANGLE_CLS,
             lang=settings.OCR_LANGUAGE,
-            use_gpu=settings.USE_GPU,
-            show_log=False,
+            # show_log=False,
             enable_mkldnn=True,
             use_tensorrt=False,
         )
@@ -61,7 +60,25 @@ class OCRService:
             "Initializing PaddleOCR engine",
             **{k: v for k, v in init_kwargs.items() if k != "rec_char_dict_path"},
         )
-        self._ocr = PaddleOCR(**init_kwargs)
+        try:
+            self._ocr = PaddleOCR(**init_kwargs)
+        except AttributeError as exc:
+            # Compatibility fallback: some Paddle builds do not expose
+            # AnalysisConfig.set_mkldnn_cache_capacity.
+            if (
+                init_kwargs.get("enable_mkldnn")
+                and "set_mkldnn_cache_capacity" in str(exc)
+            ):
+                fallback_kwargs = dict(init_kwargs)
+                fallback_kwargs["enable_mkldnn"] = False
+                os.environ["FLAGS_use_mkldnn"] = "0"
+                logger.warning(
+                    "PaddleOCR mkldnn init incompatible, retrying without mkldnn",
+                    error=str(exc),
+                )
+                self._ocr = PaddleOCR(**fallback_kwargs)
+            else:
+                raise
         self._engine_ready = True
         logger.info("PaddleOCR initialized")
 
@@ -247,7 +264,7 @@ class OCRService:
 
         # 4. 主 OCR（通用文本识别）
         ocr_start = time.time()
-        result = self._ocr.ocr(image, cls=True)
+        result = self._ocr.ocr(image)
         ocr_end = time.time()
         logger.info(
             "OCR engine ocr done",
@@ -301,7 +318,7 @@ class OCRService:
                     {**options, "remove_table_lines": True}
                 )
                 fallback_img = self._preprocess_image(orig_image, fallback_cfg)
-                fb_res = self._ocr.ocr(fallback_img, cls=True)
+                fb_res = self._ocr.ocr(fallback_img)
                 fb_parsed = self._parse_result(fb_res, fallback_img.shape)
                 if fb_parsed.get("text"):
                     parsed = fb_parsed
@@ -368,7 +385,7 @@ class OCRService:
                             "binarize": "adaptive"}
                     )
                     q_img = self._preprocess_image(orig_image, q_cfg)
-                    q_res = self._ocr.ocr(q_img, cls=True)
+                    q_res = self._ocr.ocr(q_img)
                     q_parsed = self._parse_result(q_res, q_img.shape)
 
                     def _better(new, old):
@@ -443,7 +460,7 @@ class OCRService:
             if end - start < 16:
                 continue
             tile = image[start:end, :] if vertical else image[:, start:end]
-            res = self._ocr.ocr(tile, cls=True)
+            res = self._ocr.ocr(tile)
             if not res or not res[0]:
                 continue
             for line in res[0]:
@@ -976,7 +993,7 @@ class OCRService:
         这个操作本身也比较重，所以默认关闭，仅在需要时开启。
         """
         try:
-            det_result = self._ocr.ocr(image, det=True, rec=False, cls=False)
+            det_result = self._ocr.ocr(image, det=True, rec=False)
             if not det_result or not det_result[0]:
                 return image
             boxes = det_result[0]

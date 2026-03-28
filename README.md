@@ -6,18 +6,33 @@
 
 ## 快速开始（本地）
 
-### 1) 创建虚拟环境
+### 1) Python 版本
+
+建议使用 Python 3.10（`runtime.txt` 当前为 `python-3.10.4`）。
+
+### 2) 选择安装方式
+
+#### 方式 A（推荐）：使用虚拟环境
 
 本项目在不同机器上可能存在 `venv/` 与 `.venv/` 两种虚拟环境目录。
 
 - 推荐统一使用 `venv/`（README 默认按 `venv` 给命令）。
 - 如果你已有 `.venv/`，请确保 `.venv/pyvenv.cfg` 存在；否则该环境会报 `No pyvenv.cfg file`，无法运行。
 
+macOS / Linux：
+
+```bash
+python3 -m venv venv
+source venv/bin/activate
+python -m pip install -r requirements.txt
+```
+
 Windows（PowerShell）：
 
 ```powershell
 python -m venv venv
 venv\Scripts\Activate.ps1
+python -m pip install -r requirements.txt
 ```
 
 Windows（cmd.exe）：
@@ -25,21 +40,35 @@ Windows（cmd.exe）：
 ```bat
 python -m venv venv
 venv\Scripts\activate.bat
+python -m pip install -r requirements.txt
 ```
 
-### 2) 安装依赖
+#### 方式 B：不使用虚拟环境（可选）
 
-```bat
-pip install -r requirements.txt
+如果你明确不想使用虚拟环境，也可以直接安装到当前 Python 环境：
+
+```bash
+python3 -m pip install --upgrade pip
+python3 -m pip install -r requirements.txt
 ```
+
+> 注意：不使用虚拟环境时，可能与系统已有包发生版本冲突。若遇到依赖问题，建议切回方式 A。
 
 ### 3) 启动服务
+
+macOS / Linux：
+
+```bash
+python3 app.py
+```
+
+Windows：
 
 ```bat
 python app.py
 ```
 
-默认地址：`http://127.0.0.1:5000`
+默认地址：`http://127.0.0.1:5005`
 
 ### 4) 预热（可选但推荐）
 
@@ -245,7 +274,13 @@ graph TD
 
 ### 5.1 运行单测
 
-Windows（cmd.exe）：
+不使用虚拟环境（macOS / Linux）：
+
+```bash
+python3 -m pytest -q -k "not test_ocr"
+```
+
+使用虚拟环境（Windows cmd.exe）：
 
 ```bat
 venv\Scripts\python.exe -m pytest -q -k "not test_ocr"
