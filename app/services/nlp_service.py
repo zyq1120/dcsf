@@ -147,11 +147,208 @@ class NLPService:
         start_time = time.time()
         doc_hint = self._classify_doc_type_free(text).get("document_type")
 
-        # 班级成员表：直接按名单三元组生成仅包含班级/姓名/性别的模板与提取结果
+        # 准考证：优先走专用模板，避免回落到通用字段产生脏值
+        if doc_hint == "准考证":
+            invalid_tokens = {
+                "所属学校", "所属学校：", "院系班级", "院系班级：", "证件号码", "证件号码：",
+                "姓名", "姓名：", "性别", "性别：", "考试地点", "考试地点：", "报到时间", "报到时间：",
+            }
+
+            def _clean_ticket_value(field_name: str, value: Optional[str]) -> Optional[str]:
+                if value is None:
+                    return None
+                cleaned = self._clean_kv_value(value)
+                if not cleaned:
+                    return None
+                if cleaned in invalid_tokens:
+                    return None
+                if cleaned.endswith("：") and len(cleaned) <= 12:
+                    return None
+                if field_name in ("school_name", "class", "exam_site"):
+                    if any(k in cleaned for k in ("考生须知", "考生须听从", "按违规处理", "证件不全", "不得参加")):
+                        return None
+                if self._is_bad_field_value(cleaned):
+                    return None
+                return cleaned
+
+            template_fields = [
+                {"name": "ticket_no", "type": "TEXT", "required": False, "patterns": [r"(?:准考证号|准考证)[:：]?\s*([A-Za-z0-9]{8,20})"], "description": "准考证号"},
+                {"name": "name", "type": "PERSON", "required": False, "patterns": [r"姓名[:：]?\s*([A-Za-z\u4e00-\u9fa5]{2,8})"], "description": "姓名"},
+                {"name": "gender", "type": "TEXT", "required": False, "patterns": [r"性别[:：]?\s*(男|女)"], "description": "性别"},
+                {"name": "id_number", "type": "ID_NUMBER", "required": False, "patterns": [r"(?:证件号码|身份证号|身份证号码)[:：]?\s*(\d{17}[\dXx])"], "description": "证件号码"},
+                {"name": "school_name", "type": "ORG", "required": False, "patterns": [r"(?:所属学校|学校名称)[:：]?\s*([^\n]{2,40})"], "description": "所属学校"},
+                {"name": "class", "type": "CLASS", "required": False, "patterns": [r"(?:院系班级|班级)[:：]?\s*([^\n]{2,40})"], "description": "院系班级"},
+                {"name": "student_id", "type": "STUDENT_ID", "required": False, "patterns": [r"学号[:：]?\s*([0-9]{6,12})"], "description": "学号"},
+                {"name": "exam_date", "type": "DATE", "required": False, "patterns": [r"考试日期[:：]?\s*([0-9]{4}[-/.年][0-9]{1,2}[-/.月][0-9]{1,2}日?)"], "description": "考试日期"},
+                {"name": "report_time", "type": "TEXT", "required": False, "patterns": [r"报到时间[:：]?\s*([0-9]{1,2}:[0-9]{2})"], "description": "报到时间"},
+                {"name": "exam_time", "type": "TEXT", "required": False, "patterns": [r"考试时间[:：]?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-~]\s*[0-9]{1,2}:[0-9]{2})?)"], "description": "考试时间"},
+                {"name": "exam_site", "type": "TEXT", "required": False, "patterns": [r"考试地点[:：]?\s*([^\n]{2,80})"], "description": "考试地点"},
+                {"name": "room_no", "type": "TEXT", "required": False, "patterns": [r"考场号[:：]?\s*([A-Za-z0-9]{1,10})"], "description": "考场号"},
+                {"name": "seat_no", "type": "TEXT", "required": False, "patterns": [r"座位号[:：]?\s*([A-Za-z0-9]{1,10})"], "description": "座位号"},
+            ]
+
+            extract_details = []
+            extracted_fields = 0
+            total_confidence = 0.0
+            for field in template_fields:
+                value, conf, pos = self._extract_by_patterns(text, field.get("patterns", []), field["type"])
+                value = _clean_ticket_value(field["name"], value)
+                if value is not None:
+                    extracted_fields += 1
+                    total_confidence += conf
+                extract_details.append({
+                    "field_name": field["name"],
+                    "field_value": value,
+                    "field_type": field["type"],
+                    "confidence": round(conf, 4),
+                    "source_position": pos,
+                    "source": "admission_ticket",
+                })
+
+            avg_confidence = total_confidence / extracted_fields if extracted_fields else 0.0
+            processing_time = round(time.time() - start_time, 2)
+            extract_result = {
+                "file_id": None,
+                "template_id": "auto-admission-ticket",
+                "extract_main": {
+                    "total_fields": len(template_fields),
+                    "extracted_fields": extracted_fields,
+                    "confidence": round(avg_confidence, 4),
+                    "status": "success" if extracted_fields > 0 else "failed",
+                },
+                "extract_details": extract_details,
+                "processing_time": processing_time,
+            }
+            return {
+                "extract_result": extract_result,
+                "template_config": {"template_id": "auto-admission-ticket", "fields": template_fields},
+                "fail_reason": None if extracted_fields else "未识别到准考证关键字段",
+            }
+
+        # 住宿表：优先走专用模板，避免回落通用字段集合
+        if doc_hint == "住宿表":
+            dorm_sample = self._extract_dorm_row_sample(text)
+            has_dorm_hint = bool(
+                re.search(r"住宿表|宿舍表|宿舍名单|住宿名单|楼栋|宿舍号|床位", text)
+            )
+            if not dorm_sample and not has_dorm_hint:
+                pass
+            else:
+                template_fields = [
+                    {
+                        "name": "building",
+                        "type": "TEXT",
+                        "required": False,
+                        "patterns": [
+                            r"(?:楼栋|宿舍楼|楼号)[:：]?\s*([0-9A-Za-z一二三四五六七八九十]{1,6}(?:栋|号楼)?)",
+                            r"(?:^|\n)\s*\d{0,3}\s*([0-9A-Za-z一二三四五六七八九十]{1,6}(?:栋|号楼))\s+",
+                        ],
+                        "description": "楼栋",
+                    },
+                    {
+                        "name": "dorm_no",
+                        "type": "TEXT",
+                        "required": False,
+                        "patterns": [
+                            r"(?:宿舍号|寝室号|房间号)[:：]?\s*([A-Za-z0-9\-]{2,10})",
+                            r"(?:^|\n)\s*\d{0,3}\s*[0-9A-Za-z一二三四五六七八九十]{1,6}(?:栋|号楼)\s+([A-Za-z0-9\-]{2,10})\s+",
+                        ],
+                        "description": "宿舍号",
+                    },
+                    {
+                        "name": "bed_no",
+                        "type": "TEXT",
+                        "required": False,
+                        "patterns": [
+                            r"(?:床位|床号)[:：]?\s*([A-Za-z0-9]{1,4})",
+                            r"(?:^|\n)\s*\d{0,3}\s*[0-9A-Za-z一二三四五六七八九十]{1,6}(?:栋|号楼)\s+[A-Za-z0-9\-]{2,10}\s+([A-Za-z0-9]{1,4})\s+",
+                        ],
+                        "description": "床位",
+                    },
+                    {
+                        "name": "name",
+                        "type": "PERSON",
+                        "required": False,
+                        "patterns": [
+                            r"姓名[:：]?\s*([A-Za-z\u4e00-\u9fa5]{2,8})",
+                            r"(?:^|\n)\s*\d{0,3}\s*[0-9A-Za-z一二三四五六七八九十]{1,6}(?:栋|号楼)\s+[A-Za-z0-9\-]{2,10}\s+[A-Za-z0-9]{1,4}\s+([\u4e00-\u9fa5]{2,4})\s+",
+                        ],
+                        "description": "姓名",
+                    },
+                    {
+                        "name": "student_id",
+                        "type": "STUDENT_ID",
+                        "required": False,
+                        "patterns": [
+                            r"学号[:：]?\s*([0-9]{6,12})",
+                            r"(?:^|\n)\s*\d{0,3}\s*[0-9A-Za-z一二三四五六七八九十]{1,6}(?:栋|号楼)\s+[A-Za-z0-9\-]{2,10}\s+[A-Za-z0-9]{1,4}\s+[\u4e00-\u9fa5]{2,4}\s+([0-9]{6,12})",
+                        ],
+                        "description": "学号",
+                    },
+                ]
+
+                extract_details = []
+                extracted_fields = 0
+                total_confidence = 0.0
+                for f in template_fields:
+                    val = None
+                    conf = 0.0
+                    pos = None
+                    if dorm_sample:
+                        val = dorm_sample.get(f["name"])
+                        if val:
+                            conf = 0.88
+                            pos = {"context": "dorm-sample"}
+                    if val is None:
+                        val, conf, pos = self._extract_by_patterns(
+                            text, f.get("patterns", []), f["type"]
+                        )
+                    if val is not None:
+                        extracted_fields += 1
+                        total_confidence += conf
+                    extract_details.append(
+                        {
+                            "field_name": f["name"],
+                            "field_value": val,
+                            "field_type": f["type"],
+                            "confidence": round(conf, 4),
+                            "source_position": pos,
+                            "source": "dormitory",
+                        }
+                    )
+
+                avg_confidence = (
+                    total_confidence / extracted_fields if extracted_fields else 0.0
+                )
+                processing_time = round(time.time() - start_time, 2)
+                extract_result = {
+                    "file_id": None,
+                    "template_id": "auto-dormitory",
+                    "extract_main": {
+                        "total_fields": len(template_fields),
+                        "extracted_fields": extracted_fields,
+                        "confidence": round(avg_confidence, 4),
+                        "status": "success" if extracted_fields > 0 else "failed",
+                    },
+                    "extract_details": extract_details,
+                    "processing_time": processing_time,
+                }
+                template_config = {
+                    "template_id": "auto-dormitory",
+                    "fields": template_fields,
+                }
+                fail_reason = None if extracted_fields else "未找到住宿表关键字段"
+                return {
+                    "extract_result": extract_result,
+                    "template_config": template_config,
+                    "fail_reason": fail_reason,
+                }
+
+        # 班级成员表：直接按名单三元组生成仅包含班级/姓名/性别(补充学号)的模板与提取结果
         if doc_hint == "班级成员表":
             roster_rows = self._extract_roster_rows(text)
             # 若未检测到表格行且正文中未出现明显“班级成员”提示，则回退到通用字段提取，避免住宿表等被误识别
-            has_roster_hint = bool(re.search(r"班级成员表|成员名单|班级名单", text))
+            has_roster_hint = bool(re.search(r"班级成员表|成员名单|班级名单|班级表|班级花名册", text))
             if not roster_rows and not has_roster_hint:
                 pass
             else:
@@ -185,6 +382,9 @@ class NLPService:
                     {"name": "gender", "type": "TEXT", "required": False,
                      "patterns": [r"性别[:：]?\s*(男|女)"],
                      "description": "性别"},
+                    {"name": "student_id", "type": "STUDENT_ID", "required": False,
+                     "patterns": [r"学号[:：]?\s*([0-9]{6,12})"],
+                     "description": "学号"},
                 ]
 
                 extract_details = []
@@ -571,6 +771,40 @@ class NLPService:
         rows.sort(key=lambda r: r.get("number") or 1_000_000)
         return rows
 
+    @staticmethod
+    def _extract_dorm_row_sample(text: str) -> Dict[str, Optional[str]]:
+        """提取住宿表中的首个样例行（楼栋/宿舍号/床位/姓名/学号）。"""
+        patterns = [
+            re.compile(
+                r"(?:^|\n)\s*(?:\d{1,3}\s+)?"
+                r"(?P<building>[0-9A-Za-z一二三四五六七八九十]{1,6}(?:栋|号楼))\s+"
+                r"(?P<dorm_no>[A-Za-z0-9\-]{2,10})\s+"
+                r"(?P<bed_no>[A-Za-z0-9]{1,4})\s+"
+                r"(?P<name>[\u4e00-\u9fa5]{2,4})\s+"
+                r"(?P<student_id>\d{6,12})"
+            ),
+            re.compile(
+                r"(?:^|\n)\s*(?:\d{1,3}\s+)?"
+                r"(?P<building>[0-9A-Za-z一二三四五六七八九十]{1,6}(?:栋|号楼))\s+"
+                r"(?P<dorm_no>[A-Za-z0-9\-]{2,10})\s+"
+                r"(?P<name>[\u4e00-\u9fa5]{2,4})\s+"
+                r"(?P<student_id>\d{6,12})"
+            ),
+        ]
+        for pattern in patterns:
+            match = pattern.search(text)
+            if not match:
+                continue
+            groups = match.groupdict()
+            return {
+                "building": groups.get("building"),
+                "dorm_no": groups.get("dorm_no"),
+                "bed_no": groups.get("bed_no"),
+                "name": groups.get("name"),
+                "student_id": groups.get("student_id"),
+            }
+        return {}
+
     # ---------------------
     # OCR 诊断与动态模板工具
     # ---------------------
@@ -584,7 +818,9 @@ class NLPService:
             "成绩单": ["成绩单", "成绩表", "课程", "学分", "GPA", "绩点", "总评", "统计时间"],
             "在校证明": ["在校生", "在读", "学生证明", "在校证明", "学籍证明"],
             "学籍信息卡": ["学籍信息卡", "学籍卡", "学籍信息", "学籍状态", "注册学籍"],
-            "班级成员表": ["班级成员表", "班级成员", "成员名单", "班级名单", "序号", "班级", "姓名", "性别"],
+            "班级成员表": ["班级成员表", "班级成员", "成员名单", "班级名单", "班级表", "班级花名册", "序号", "班级", "姓名", "性别"],
+            "住宿表": ["住宿表", "宿舍表", "宿舍名单", "住宿名单", "楼栋", "宿舍号", "寝室", "床位", "宿舍"],
+            "准考证": ["准考证", "准考证号", "报到时间", "考试时间", "考场号", "座位号", "英语四级", "英语六级", "CET"],
             "毕业证书/学历证书": ["毕业证书", "学历证书", "普通高等学校", "经审核准予毕业"],
             "录取凭证": ["录取通知书", "录取通知", "录取学校", "新生", "录取专业"],
             "课程表": ["课程表", "上课时间", "周一", "周二", "节次", "教室"],
@@ -833,6 +1069,28 @@ class NLPService:
                 ("sign_date", "DATE", "签订日期"),
                 ("amount", "NUMBER", "金额"),
             ],
+            "住宿表": [
+                ("building", "TEXT", "楼栋"),
+                ("dorm_no", "TEXT", "宿舍号"),
+                ("bed_no", "TEXT", "床位"),
+                ("name", "PERSON", "姓名"),
+                ("student_id", "STUDENT_ID", "学号"),
+            ],
+            "准考证": [
+                ("ticket_no", "TEXT", "准考证号"),
+                ("name", "PERSON", "姓名"),
+                ("gender", "TEXT", "性别"),
+                ("id_number", "ID_NUMBER", "证件号码"),
+                ("school_name", "ORG", "所属学校"),
+                ("class", "CLASS", "院系班级"),
+                ("student_id", "STUDENT_ID", "学号"),
+                ("exam_date", "DATE", "考试日期"),
+                ("report_time", "TEXT", "报到时间"),
+                ("exam_time", "TEXT", "考试时间"),
+                ("exam_site", "TEXT", "考试地点"),
+                ("room_no", "TEXT", "考场号"),
+                ("seat_no", "TEXT", "座位号"),
+            ],
         }
 
         # 通用兜底字段
@@ -975,7 +1233,7 @@ class NLPService:
             "ID_NUMBER": r"\b(\d{17}[\dXx])\b",
             "STUDENT_ID": r"(?:学号|学籍号)[:：]?\s*([A-Za-z0-9]{6,20})",
             "DATE": r"(\d{4}[年\-\.\/]\d{1,2}[月\-\.\/]?\d{0,2}日?)",
-            "PHONE": r"(1[3-9]\d{9})",
+            "PHONE": r"(?<!\d)(1[3-9]\d{9})(?!\d)",
             "NUMBER": r"(\d+(?:\.\d+)?)",
         }
         for field in expected_fields:
@@ -1191,13 +1449,13 @@ class NLPService:
                 add_entity("ID_NUMBER", m)
 
         # 微信号/QQ号（请假单常见）
-        for m in re.finditer(r"(?:微信号|微信)[:：]?\s*([A-Za-z][A-ZaZ0-9_-]{4,20})", text):
+        for m in re.finditer(r"(?:微信号|微信)[:：]?\s*([A-Za-z][A-Za-z0-9_-]{4,20})", text):
             add_entity("WECHAT", m)
         for m in re.finditer(r"(?:QQ号|QQ)[:：]?\s*(\d{5,12})", text):
             add_entity("QQ", m)
 
         # 邮箱（已有 EMAIL，但请假单可能有前缀 E-mail:_）
-        for m in re.finditer(r"(?:E-?mail)[:：]?\s*[_ ]*([A-Za-z0-9_.+\-]+@[A-ZaZ0-9\-]+\.[A-Za-z0-9\-.]+)", text, flags=re.IGNORECASE):
+        for m in re.finditer(r"(?:E-?mail)[:：]?\s*[_ ]*([A-Za-z0-9_.+\-]+@[A-Za-z0-9\-]+\.[A-Za-z0-9\-.]+)", text, flags=re.IGNORECASE):
             add_entity("EMAIL", m)
 
         # 手机号（允许前缀下划线）
@@ -1253,7 +1511,7 @@ class NLPService:
             add_entity("STUDENT_ID", m)
         for m in re.finditer(r"(\d{4}[-年/\.]\d{1,2}[-月/\.]?\d{1,2}[日]?)", text):
             add_entity("DATE", m)
-        for m in re.finditer(r"(1[3-9]\d{9})", text):
+        for m in re.finditer(r"(?<!\d)(1[3-9]\d{9})(?!\d)", text):
             add_entity("PHONE", m)
         for m in re.finditer(r"([A-Za-z0-9_.+\-]+@[A-Za-z0-9\-]+\.[A-Za-z0-9\-.]+)", text):
             add_entity("EMAIL", m)
@@ -1277,7 +1535,7 @@ class NLPService:
             add_entity("EXPECTED_GRAD_DATE", m)
         for m in re.finditer(r"(?:贷款金额|贷款数额|借款金额)[:：]?\s*([0-9]+(?:\.[0-9]+)?)", text):
             add_entity("LOAN_AMOUNT", m)
-        for m in re.finditer(r"(?:贷款期限|贷款年限|还款期限)[:：]?\s*([0-9]{1,2})", text):
+        for m in re.finditer(r"(?:用款期限|贷款期限|贷款年限|还款期限)[:：]?\s*([0-9]{1,3})", text):
             add_entity("LOAN_TERM_MONTH", m)
         for m in re.finditer(r"(?:贷款年度|贷款年度)[:：]?\s*([0-9]{4})", text):
             add_entity("LOAN_YEAR", m)
@@ -1319,6 +1577,18 @@ class NLPService:
         except Exception:
             pass
 
+        # 兼容“自 2026年01月02日至 2026年01月05日”这类带“日”后缀的范围格式
+        if not any(e.get("type") == "LEAVE_START_DATE" for e in entities):
+            m = re.search(
+                r"自\s*([0-9]{4}[^\d]{0,2}[0-9]{1,2}[^\d]{0,2}[0-9]{1,2}日?)\s*(?:至|到|~|\-|—)\s*([0-9]{4}[^\d]{0,2}[0-9]{1,2}[^\d]{0,2}[0-9]{1,2}日?)",
+                text,
+            )
+            if m:
+                s = normalize_date(m.group(1)) or m.group(1)
+                e = normalize_date(m.group(2)) or m.group(2)
+                entities.append({"type": "LEAVE_START_DATE", "text": s, "start": m.start(1), "end": m.end(1), "context": m.group(0)})
+                entities.append({"type": "LEAVE_END_DATE", "text": e, "start": m.start(2), "end": m.end(2), "context": m.group(0)})
+
         for m in re.finditer(r"(?:外出地点|外出地点、时间|外出地点|地点)[:：]?\s*([^\n]{2,80})", text):
             add_entity("LEAVE_LOCATION", m)
 
@@ -1339,7 +1609,7 @@ class NLPService:
 
         for m in re.finditer(r"(?:家长姓名及手机|家长姓名(?:及手机)?|家长姓名)[:：]?\s*([\u4e00-\u9fa5]{2,6})", text):
             add_entity("PARENT_NAME", m)
-        for m in re.finditer(r"(?:家长姓名及手机|家长手机|家长电话|家长联系方式)[:：]?\s*[_ ]*(1[3-9]\d{9})", text):
+        for m in re.finditer(r"(?:家长姓名及手机|家长手机|家长电话|家长联系方式)[:：]?\s*(?:[\u4e00-\u9fa5]{2,6}\s*)?[_ ]*(1[3-9]\d{9})", text):
             add_entity("PARENT_PHONE", m)
 
         # 在身份证/学号/手机号等 add_entity 后做一次归一化清洗（避免后续把 _184.. 这类当值）
@@ -2049,7 +2319,9 @@ class NLPService:
             "成绩单": ["成绩单", "成绩表", "课程", "学分", "GPA", "绩点", "总评", "统计时间"],
             "在校证明": ["在校生", "在读", "学生证明", "在校证明", "学籍证明"],
             "学籍信息卡": ["学籍信息卡", "学籍卡", "学籍信息", "学籍状态", "注册学籍"],
-            "班级成员表": ["班级成员表", "班级成员", "成员名单", "班级名单", "序号", "班级", "姓名", "性别"],
+            "班级成员表": ["班级成员表", "班级成员", "成员名单", "班级名单", "班级表", "班级花名册", "序号", "班级", "姓名", "性别"],
+            "住宿表": ["住宿表", "宿舍表", "宿舍名单", "住宿名单", "楼栋", "宿舍号", "寝室", "床位", "宿舍"],
+            "准考证": ["准考证", "准考证号", "报到时间", "考试时间", "考场号", "座位号", "英语四级", "英语六级", "CET"],
             "毕业证书/学历证书": ["毕业证书", "学历证书", "普通高等学校", "经审核准予毕业"],
             "录取凭证": ["录取通知书", "录取通知", "录取学校", "新生", "录取专业"],
             "课程表": ["课程表", "上课时间", "周一", "周二", "节次", "教室"],
@@ -2069,12 +2341,15 @@ class NLPService:
             "证明类其他": ["兹证明", "特此证明", "证明", "盖章"],
             "合同": ["合同", "协议", "甲方", "乙方", "签订"],
         }
-
-        # 额外权重（保持轻量）
         weight_map = {
             "请假条": 2.2,
             "班级成员表": 1.0,
+            "住宿表": 1.2,
+            "准考证": 1.6,
         }
+        has_exam_keywords = any(
+            k in text for k in ("准考证", "准考证号", "报到时间", "考试时间", "考场号", "座位号", "英语四级", "英语六级", "CET")
+        )
 
         scores: Dict[str, float] = {}
         for doc_type, kw_list in keywords_map.items():
@@ -2094,7 +2369,11 @@ class NLPService:
 
             if has_leave_keywords and doc_type == "班级成员表":
                 total_score *= 0.1
+            if has_exam_keywords and doc_type == "班级成员表":
+                total_score *= 0.15
             if has_roster_table and doc_type == "班级成员表":
+                total_score *= 1.8
+            if has_exam_keywords and doc_type == "准考证":
                 total_score *= 1.8
 
             scores[doc_type] = total_score

@@ -60,3 +60,60 @@ def test_classification_not_roster_when_leave_keywords(nlp: NLPService):
     assert cls.get("document_type") in ("请假条", "休学申请", "通知", "证明类其他", "在校证明", "学籍信息卡")
     assert cls.get("document_type") != "班级成员表"
 
+
+def test_dormitory_table_auto_template(nlp: NLPService):
+    text = (
+        "住宿表\n"
+        "序号 楼栋 宿舍号 床位 姓名 学号\n"
+        "1 7栋 708 1 张三 242040390\n"
+    )
+    auto = nlp.infer_fields_auto(text)
+    tpl = auto.get("template_config") or {}
+    details = _slot_map((auto.get("extract_result") or {}).get("extract_details"))
+
+    assert tpl.get("template_id") == "auto-dormitory"
+    assert details.get("building") == "7栋"
+    assert details.get("dorm_no") == "708"
+    assert details.get("bed_no") == "1"
+    assert details.get("name") == "张三"
+    assert details.get("student_id") == "242040390"
+
+
+def test_class_table_alias_hits_roster(nlp: NLPService):
+    text = "班级表\n序号 班级 姓名 性别 学号\n1 软升243 周宇清 女 242040390"
+    cls = nlp.classify_document(text)
+    assert cls.get("document_type") == "班级成员表"
+
+
+def test_admission_ticket_not_roster_and_template(nlp: NLPService):
+    text = (
+        "2025年下半年全国大学英语四级考试\n"
+        "准考证\n"
+        "准考证号：340801252117128\n"
+        "姓名：周宇清\n"
+        "性别：男\n"
+        "证件号码：341321200211201034\n"
+        "所属学校：马鞍山学院\n"
+        "院系班级：大数据与人工智能学院 软升243\n"
+        "学号：242040390\n"
+        "考试日期 2025-12-13\n"
+        "报到时间 08:40\n"
+        "考试时间 09:00-11:20\n"
+        "考试地点 马鞍山学院 G414A\n"
+        "考场号 171\n"
+        "座位号 28\n"
+    )
+    cls = nlp.classify_document(text)
+    assert cls.get("document_type") == "准考证"
+
+    auto = nlp.infer_fields_auto(text)
+    tpl = auto.get("template_config") or {}
+    details = _slot_map((auto.get("extract_result") or {}).get("extract_details"))
+    assert tpl.get("template_id") == "auto-admission-ticket"
+    assert details.get("ticket_no") == "340801252117128"
+    assert details.get("name") == "周宇清"
+    assert details.get("student_id") == "242040390"
+    assert details.get("room_no") == "171"
+    assert details.get("seat_no") == "28"
+
+

@@ -144,6 +144,55 @@
     ]
   },
   {
+    "template_id": "admission_ticket_v1",
+    "document_type": "准考证",
+    "description": "考试准考证（含考场、座位、时间）",
+    "priority": 10,
+    "match_keywords": ["准考证", "准考证号", "报到时间", "考试时间", "考场号", "座位号", "英语四级", "英语六级", "CET"],
+    "required_fields": [
+      {"field_name": "ticket_no", "field_type": "TEXT", "description": "准考证号"},
+      {"field_name": "name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "gender", "field_type": "TEXT", "description": "性别"},
+      {"field_name": "id_number", "field_type": "ID_NUMBER", "description": "证件号码"},
+      {"field_name": "school_name", "field_type": "ORG", "description": "所属学校"},
+      {"field_name": "class", "field_type": "CLASS", "description": "院系班级"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"},
+      {"field_name": "exam_date", "field_type": "DATE", "description": "考试日期"},
+      {"field_name": "report_time", "field_type": "TEXT", "description": "报到时间"},
+      {"field_name": "exam_time", "field_type": "TEXT", "description": "考试时间"},
+      {"field_name": "exam_site", "field_type": "TEXT", "description": "考试地点"},
+      {"field_name": "room_no", "field_type": "TEXT", "description": "考场号"},
+      {"field_name": "seat_no", "field_type": "TEXT", "description": "座位号"}
+    ]
+  },
+  {
+    "template_id": "dormitory_table_v1",
+    "document_type": "住宿表",
+    "description": "学生住宿信息表（楼栋/宿舍号/床位/姓名/学号）",
+    "priority": 10,
+    "match_keywords": ["住宿表", "宿舍表", "宿舍名单", "楼栋", "宿舍号", "床位", "寝室", "学号", "姓名"],
+    "required_fields": [
+      {"field_name": "building", "field_type": "TEXT", "description": "楼栋"},
+      {"field_name": "dorm_no", "field_type": "TEXT", "description": "宿舍号"},
+      {"field_name": "bed_no", "field_type": "TEXT", "description": "床位"},
+      {"field_name": "name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"}
+    ]
+  },
+  {
+    "template_id": "class_roster_v1",
+    "document_type": "班级成员表",
+    "description": "班级成员名单（班级/姓名/性别/学号）",
+    "priority": 10,
+    "match_keywords": ["班级成员表", "班级表", "班级花名册", "班级名单", "序号", "班级", "姓名", "性别", "学号"],
+    "required_fields": [
+      {"field_name": "class", "field_type": "CLASS", "description": "班级"},
+      {"field_name": "name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "gender", "field_type": "TEXT", "description": "性别"},
+      {"field_name": "student_id", "field_type": "STUDENT_ID", "description": "学号"}
+    ]
+  },
+  {
     "template_id": "makeup_exam_v1",
     "document_type": "补考单",
     "description": "申请或登记补考的表单",

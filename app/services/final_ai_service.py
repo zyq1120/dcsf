@@ -1559,7 +1559,14 @@ class FinalAIService:
         for d in details:
             k = d.get("field_name")
             if k in flat:
-                flat[k] = d.get("field_value")
+                v = d.get("field_value")
+                # Keep the latest non-empty value; do not override with None/empty noise.
+                if v is None:
+                    continue
+                sv = str(v).strip() if isinstance(v, str) else v
+                if sv == "":
+                    continue
+                flat[k] = v
         # 补充可能遗漏的贷款/奖助学金字段名称别名
         alias_map = {
             "loan_amount": ["loan_amount", "贷款金额", "借款金额"],
@@ -2582,11 +2589,10 @@ class FinalAIService:
         s2 = re.sub(r"[：:]$", "", s).strip()
         if s2 in cls.LABEL_TOKENS:
             return True
-        # 2-4 个纯中文，且不含机构/银行关键词，则多半是标签
-        if 2 <= len(s2) <= 4 and all("\u4e00" <= ch <= "\u9fff" for ch in s2) and not any(
-            kw in s2 for kw in ("银行", "学院", "大学", "学校", "支行")
-        ):
-            return True
+        # 仅当短中文明显是字段名时才判定为标签，避免把“周宇清”这类姓名误判为标签。
+        if 2 <= len(s2) <= 4 and all("\u4e00" <= ch <= "\u9fff" for ch in s2):
+            if any(k in s2 for k in ("姓名", "性别", "学号", "班级", "专业", "学院", "学校", "地址", "电话", "日期", "时间", "成绩", "备注")):
+                return True
         return False
 
     def _build_normalized_blocks(

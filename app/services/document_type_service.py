@@ -26,6 +26,7 @@ class DocumentTypeService:
         "学籍卡": "student_record",
         "学籍信息卡": "student_record",
         "班级成员表": "student_record",
+        "住宿表": "student_record",
         "学籍证明": "student_record",
         "在校证明": "enrollment_proof",
         "学籍证明/在校证明": "enrollment_proof",
@@ -56,6 +57,7 @@ class DocumentTypeService:
         # ===== 录取 / 学历 / 学位 =====
         "录取通知": "admission",
         "录取凭证": "admission",
+        "准考证": "admission",
         "毕业证书/学历证书": "certificate",
         "学历证书": "certificate",
         "毕业证书": "certificate",
@@ -118,17 +120,31 @@ class DocumentTypeService:
         },
         {
             "doc_type": "班级成员表",
-            "keywords_any": ["班级成员表", "班级成员名单", "班级成员", "成员名单", "班级名单"],
+            "keywords_any": ["班级成员表", "班级成员名单", "班级成员", "成员名单", "班级名单", "班级表", "班级花名册"],
             "keywords_all": ["班级"],
-            "exclude": ["贷款合同", "借款人"],
+            "exclude": ["贷款合同", "借款人", "准考证", "准考证号", "考场号", "座位号"],
             "min_hits": 1,
         },
         {
             "doc_type": "班级成员表",
             "keywords_any": ["序号", "班级", "姓名"],
             "keywords_all": ["班级", "姓名"],
-            "exclude": ["贷款合同", "借款人"],
+            "exclude": ["贷款合同", "借款人", "准考证", "准考证号", "考场号", "座位号"],
             "min_hits": 2,
+        },
+        {
+            "doc_type": "准考证",
+            "keywords_any": ["准考证", "准考证号", "报到时间", "考试时间", "考场号", "座位号", "英语四级", "英语六级", "CET"],
+            "keywords_all": [],
+            "exclude": [],
+            "min_hits": 2,
+        },
+        {
+            "doc_type": "住宿表",
+            "keywords_any": ["住宿表", "宿舍表", "宿舍名单", "住宿名单", "楼栋", "宿舍号", "寝室", "床位"],
+            "keywords_all": [],
+            "exclude": ["贷款合同", "借款人"],
+            "min_hits": 1,
         },
         {
             "doc_type": "在校证明",
@@ -382,6 +398,8 @@ class DocumentTypeService:
             "学籍卡",
             "学籍信息卡",
             "班级成员表",
+            "住宿表",
+            "准考证",
             "在校证明",
             "学籍证明",
         }
@@ -405,8 +423,12 @@ class DocumentTypeService:
         """
         if any(k in text for k in ("成绩单", "学业成绩表", "成绩列表")):
             return "成绩单"
+        if any(k in text for k in ("准考证", "准考证号", "考场号", "座位号", "英语四级", "英语六级", "CET")):
+            return "准考证"
         if any(k in text for k in ("课程表", "课表")):
             return "课程表"
+        if any(k in text for k in ("住宿表", "宿舍表", "宿舍名单", "住宿名单")):
+            return "住宿表"
         if ("班级" in text and "姓名" in text) or ("班级" in text and "序号" in text):
             return "班级成员表"
         if "学籍卡" in text or "学籍信息卡" in text:
@@ -492,11 +514,12 @@ class DocumentTypeService:
             r"(?:[一-龥]{2,4}\s*(?:男|女)\s*[A-Za-z0-9一-龥]{2,12}(?:班级)?)"
         )
         roster_hits = len(list(roster_triplet_pattern.finditer(text)))
+        exam_context = any(k in text for k in ("准考证", "准考证号", "考场号", "座位号", "英语四级", "英语六级", "CET"))
         roster_header = ("序号" in text and "班级" in text and "姓名" in text) or (
             "班级" in text and "性别" in text)
-        if roster_hits >= 5 and roster_header:
+        if roster_hits >= 5 and roster_header and not exam_context:
             candidates["班级成员表"] = max(candidates.get("班级成员表", 0.0), 0.99)
-        elif roster_hits >= 3 and roster_header:
+        elif roster_hits >= 3 and roster_header and not exam_context:
             candidates["班级成员表"] = max(candidates.get("班级成员表", 0.0), 0.9)
 
         # 5) 没有任何候选时，最后兜底
