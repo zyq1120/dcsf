@@ -58,6 +58,7 @@ class DocumentTypeService:
         "录取通知": "admission",
         "录取凭证": "admission",
         "准考证": "admission",
+        "考试证书": "certificate",
         "毕业证书/学历证书": "certificate",
         "学历证书": "certificate",
         "毕业证书": "certificate",
@@ -135,6 +136,13 @@ class DocumentTypeService:
         {
             "doc_type": "准考证",
             "keywords_any": ["准考证", "准考证号", "报到时间", "考试时间", "考场号", "座位号", "英语四级", "英语六级", "CET"],
+            "keywords_all": [],
+            "exclude": [],
+            "min_hits": 2,
+        },
+        {
+            "doc_type": "考试证书",
+            "keywords_any": ["合格证书", "证书编号", "校验码", "查询网址", "全国计算机等级考试", "Certificate Number"],
             "keywords_all": [],
             "exclude": [],
             "min_hits": 2,
@@ -400,6 +408,7 @@ class DocumentTypeService:
             "班级成员表",
             "住宿表",
             "准考证",
+            "考试证书",
             "在校证明",
             "学籍证明",
         }
@@ -423,6 +432,8 @@ class DocumentTypeService:
         """
         if any(k in text for k in ("成绩单", "学业成绩表", "成绩列表")):
             return "成绩单"
+        if any(k in text for k in ("合格证书", "证书编号", "校验码", "查询网址", "全国计算机等级考试")):
+            return "考试证书"
         if any(k in text for k in ("准考证", "准考证号", "考场号", "座位号", "英语四级", "英语六级", "CET")):
             return "准考证"
         if any(k in text for k in ("课程表", "课表")):

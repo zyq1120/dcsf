@@ -147,6 +147,192 @@ class NLPService:
         start_time = time.time()
         doc_hint = self._classify_doc_type_free(text).get("document_type")
 
+        # 考试证书（如全国计算机等级考试合格证书）
+        if doc_hint == "考试证书":
+            def _clean_cert_value(field_name: str, value: Optional[str]) -> Optional[str]:
+                if value is None:
+                    return None
+                v = str(value).strip()
+                if not v:
+                    return None
+                if field_name == "name":
+                    m = re.search(r"[\u4e00-\u9fa5]{2,8}", v)
+                    return m.group(0) if m else None
+                if field_name == "id_number":
+                    m = re.search(r"\d{17}[\dXx]", v)
+                    return m.group(0) if m else None
+                if field_name == "certificate_id":
+                    # 证书编号通常是较长数字串，避免把 MINISTRY 这类 OCR 英文噪声当作证书号
+                    if sum(ch.isdigit() for ch in v) < 6:
+                        return None
+                    return v
+                if field_name == "verify_url":
+                    if v.startswith("www.") or v.startswith("http://") or v.startswith("https://"):
+                        return v
+                    return None
+                return v
+
+            template_fields = [
+                {"name": "name", "type": "PERSON", "required": False,
+                 "patterns": [r"(?:姓\s*名|名)[:：]?\s*([A-Za-z\u4e00-\u9fa5]{2,20})"],
+                 "description": "姓名"},
+                {"name": "id_number", "type": "ID_NUMBER", "required": False,
+                 "patterns": [r"(?:身份证件号|证件号码|身份证号码|身份证号)[:：]?\s*(\d{17}[\dXx])"],
+                 "description": "身份证号"},
+                {"name": "certificate_id", "type": "CERT_ID", "required": False,
+                 "patterns": [r"(?:证书编号|Certificate\s*Number)[:：]?\s*([A-Za-z0-9]{8,30})"],
+                 "description": "证书编号"},
+                {"name": "verify_code", "type": "TEXT", "required": False,
+                 "patterns": [r"(?:校验码|验证码)[:：]?\s*([A-Za-z0-9]{6,40})"],
+                 "description": "校验码"},
+                {"name": "verify_url", "type": "TEXT", "required": False,
+                 "patterns": [r"(?:查询网址|查询地址|网址)[:：]?\s*(https?://[^\s]+|www\.[^\s]+)"],
+                 "description": "查询网址"},
+            ]
+
+            extract_details = []
+            extracted_fields = 0
+            total_confidence = 0.0
+            for field in template_fields:
+                value, conf, pos = self._extract_by_patterns(text, field.get("patterns", []), field["type"])
+                value = _clean_cert_value(field["name"], value)
+                if value is not None:
+                    extracted_fields += 1
+                    total_confidence += conf
+                extract_details.append(
+                    {
+                        "field_name": field["name"],
+                        "field_value": value,
+                        "field_type": field["type"],
+                        "confidence": round(conf, 4),
+                        "source_position": pos,
+                        "source": "exam_certificate",
+                    }
+                )
+
+            avg_confidence = total_confidence / extracted_fields if extracted_fields else 0.0
+            processing_time = round(time.time() - start_time, 2)
+            extract_result = {
+                "file_id": None,
+                "template_id": "auto-exam-certificate",
+                "extract_main": {
+                    "total_fields": len(template_fields),
+                    "extracted_fields": extracted_fields,
+                    "confidence": round(avg_confidence, 4),
+                    "status": "success" if extracted_fields > 0 else "failed",
+                },
+                "extract_details": extract_details,
+                "processing_time": processing_time,
+            }
+            return {
+                "extract_result": extract_result,
+                "template_config": {"template_id": "auto-exam-certificate", "fields": template_fields},
+                "fail_reason": None if extracted_fields else "未识别到考试证书关键字段",
+            }
+
+        # 学籍信息卡：走专用模板，避免通用字段把标签词误当值（如 class=姓名、college=层次）
+        if doc_hint == "学籍信息卡":
+            invalid_tokens = {
+                "姓名", "性别", "出生日期", "民族", "学校名称", "层次", "专业", "学制", "学历类别",
+                "学习形式", "分院", "系所", "入学日期", "学籍状态", "预计毕业日期", "在线验证码",
+                "姓名：", "性别：", "学校名称：", "层次：", "专业：", "学制：", "学历类别：", "学习形式：",
+                "分院：", "系所：", "入学日期：", "学籍状态：", "预计毕业日期：", "在线验证码：",
+            }
+
+            def _clean_card_value(field_name: str, value: Optional[str]) -> Optional[str]:
+                if value is None:
+                    return None
+                cleaned = self._clean_kv_value(value)
+                if not cleaned:
+                    return None
+                if cleaned in invalid_tokens:
+                    return None
+                if cleaned.endswith("：") and len(cleaned) <= 12:
+                    return None
+
+                if field_name in ("name",):
+                    m = re.search(r"[\u4e00-\u9fa5]{2,8}", cleaned)
+                    return m.group(0) if m else None
+                if field_name in ("gender",):
+                    return cleaned if cleaned in ("男", "女") else None
+                if field_name in ("student_id",):
+                    m = re.search(r"\d{6,12}", cleaned)
+                    return m.group(0) if m else None
+                if field_name in ("verify_code",):
+                    m = re.search(r"[A-Za-z0-9]{6,30}", cleaned)
+                    return m.group(0) if m else None
+                if field_name in ("birth_date", "enroll_date", "expected_grad_date"):
+                    norm = normalize_date(cleaned)
+                    return norm if norm else None
+                if field_name in ("verify_url",):
+                    if cleaned.startswith("http://") or cleaned.startswith("https://") or cleaned.startswith("www."):
+                        return cleaned
+                    return None
+                if field_name in ("school_name", "college"):
+                    # 学校/学院名常为短中文，避免被通用标签过滤误杀。
+                    if any(k in cleaned for k in ("大学", "学院", "学校")):
+                        return cleaned
+                if self._is_bad_field_value(cleaned):
+                    return None
+                return cleaned
+
+            template_fields = [
+                {"name": "name", "type": "PERSON", "required": False, "patterns": [r"姓名[:：]?\s*([^\n]{1,20})"], "description": "姓名"},
+                {"name": "gender", "type": "TEXT", "required": False, "patterns": [r"性别[:：]?\s*([^\n]{1,8})"], "description": "性别"},
+                {"name": "birth_date", "type": "DATE", "required": False, "patterns": [r"出生日期[:：]?\s*([^\n]{6,20})"], "description": "出生日期"},
+                {"name": "school_name", "type": "ORG", "required": False, "patterns": [r"(?:学校名称|校名称|学校名)[:：]?\s*([^\n]{2,40})"], "description": "学校名称"},
+                {"name": "degree_level", "type": "TEXT", "required": False, "patterns": [r"层次[:：]?\s*([^\n]{1,20})"], "description": "层次"},
+                {"name": "major", "type": "TEXT", "required": False, "patterns": [r"专业[:：]?\s*([^\n]{2,40})"], "description": "专业"},
+                {"name": "study_mode", "type": "TEXT", "required": False, "patterns": [r"(?:学习形式|习形式)[:：]?\s*([^\n]{2,20})"], "description": "学习形式"},
+                {"name": "education_type", "type": "TEXT", "required": False, "patterns": [r"学历类别[:：]?\s*([^\n]{2,20})"], "description": "学历类别"},
+                {"name": "college", "type": "ORG", "required": False, "patterns": [r"(?:分院|系所)[:：]?\s*([^\n]{2,40})"], "description": "分院/系所"},
+                {"name": "enroll_date", "type": "DATE", "required": False, "patterns": [r"入学日期[:：]?\s*([^\n]{6,20})"], "description": "入学日期"},
+                {"name": "status", "type": "TEXT", "required": False, "patterns": [r"学籍状态[:：]?\s*([^\n]{2,30})"], "description": "学籍状态"},
+                {"name": "expected_grad_date", "type": "DATE", "required": False, "patterns": [r"预计毕业日期[:：]?\s*([^\n]{6,20})"], "description": "预计毕业日期"},
+                {"name": "verify_code", "type": "TEXT", "required": False, "patterns": [r"(?:在线验证码|在.?证码)[:：]?\s*([A-Za-z0-9]{6,30})"], "description": "在线验证码"},
+                {"name": "verify_url", "type": "TEXT", "required": False, "patterns": [r"(?:在线查验网址|查询网址|网址)[:：]?\s*(https?://[^\s]+|www\.[^\s]+)"], "description": "在线查验网址"},
+            ]
+
+            extract_details = []
+            extracted_fields = 0
+            total_confidence = 0.0
+            for field in template_fields:
+                value, conf, pos = self._extract_by_patterns(text, field.get("patterns", []), field["type"])
+                value = _clean_card_value(field["name"], value)
+                if value is not None:
+                    extracted_fields += 1
+                    total_confidence += conf
+                extract_details.append(
+                    {
+                        "field_name": field["name"],
+                        "field_value": value,
+                        "field_type": field["type"],
+                        "confidence": round(conf if value is not None else 0.0, 4),
+                        "source_position": pos,
+                        "source": "student_card",
+                    }
+                )
+
+            avg_confidence = total_confidence / extracted_fields if extracted_fields else 0.0
+            processing_time = round(time.time() - start_time, 2)
+            extract_result = {
+                "file_id": None,
+                "template_id": "auto-student-card",
+                "extract_main": {
+                    "total_fields": len(template_fields),
+                    "extracted_fields": extracted_fields,
+                    "confidence": round(avg_confidence, 4),
+                    "status": "success" if extracted_fields > 0 else "failed",
+                },
+                "extract_details": extract_details,
+                "processing_time": processing_time,
+            }
+            return {
+                "extract_result": extract_result,
+                "template_config": {"template_id": "auto-student-card", "fields": template_fields},
+                "fail_reason": None if extracted_fields else "未识别到学籍信息卡关键字段",
+            }
+
         # 准考证：优先走专用模板，避免回落到通用字段产生脏值
         if doc_hint == "准考证":
             invalid_tokens = {
@@ -817,9 +1003,10 @@ class NLPService:
             # 高校学业类
             "成绩单": ["成绩单", "成绩表", "课程", "学分", "GPA", "绩点", "总评", "统计时间"],
             "在校证明": ["在校生", "在读", "学生证明", "在校证明", "学籍证明"],
-            "学籍信息卡": ["学籍信息卡", "学籍卡", "学籍信息", "学籍状态", "注册学籍"],
+            "学籍信息卡": ["学籍信息卡", "学籍卡", "学籍信息", "学籍状态", "注册学籍", "学籍在线验证报告", "在线验证报告", "预计毕业日期", "在线验证码", "学习形式", "学历类别"],
             "班级成员表": ["班级成员表", "班级成员", "成员名单", "班级名单", "班级表", "班级花名册", "序号", "班级", "姓名", "性别"],
             "住宿表": ["住宿表", "宿舍表", "宿舍名单", "住宿名单", "楼栋", "宿舍号", "寝室", "床位", "宿舍"],
+            "考试证书": ["合格证书", "证书编号", "校验码", "查询网址", "全国计算机等级考试", "Certificate Number"],
             "准考证": ["准考证", "准考证号", "报到时间", "考试时间", "考场号", "座位号", "英语四级", "英语六级", "CET"],
             "毕业证书/学历证书": ["毕业证书", "学历证书", "普通高等学校", "经审核准予毕业"],
             "录取凭证": ["录取通知书", "录取通知", "录取学校", "新生", "录取专业"],
@@ -854,6 +1041,17 @@ class NLPService:
         for doc_type, kws in candidates.items():
             hit = sum(1 for kw in kws if kw in text)
             scores[doc_type] = hit
+
+        card_signals = sum(1 for kw in ("学籍在线验证报告", "学籍状态", "预计毕业日期", "在线验证码", "学习形式", "学历类别") if kw in text)
+        if card_signals >= 2:
+            scores["学籍信息卡"] = scores.get("学籍信息卡", 0) + card_signals
+            scores["班级成员表"] = max(0, scores.get("班级成员表", 0) - 1)
+
+        # 同时出现“准考证号”与“证书编号/校验码”时，优先判为考试证书
+        cert_signals = sum(1 for kw in ("合格证书", "证书编号", "校验码", "查询网址") if kw in text)
+        if cert_signals >= 2:
+            scores["考试证书"] = scores.get("考试证书", 0) + cert_signals
+            scores["准考证"] = max(0, scores.get("准考证", 0) - 1)
 
         best_type = max(scores, key=scores.get) if scores else "未知"
         best_score = scores.get(best_type, 0)
@@ -1075,6 +1273,13 @@ class NLPService:
                 ("bed_no", "TEXT", "床位"),
                 ("name", "PERSON", "姓名"),
                 ("student_id", "STUDENT_ID", "学号"),
+            ],
+            "考试证书": [
+                ("name", "PERSON", "姓名"),
+                ("id_number", "ID_NUMBER", "身份证件号"),
+                ("certificate_id", "CERT_ID", "证书编号"),
+                ("verify_code", "TEXT", "校验码"),
+                ("verify_url", "TEXT", "查询网址"),
             ],
             "准考证": [
                 ("ticket_no", "TEXT", "准考证号"),
@@ -2318,9 +2523,10 @@ class NLPService:
             # 高校学业类
             "成绩单": ["成绩单", "成绩表", "课程", "学分", "GPA", "绩点", "总评", "统计时间"],
             "在校证明": ["在校生", "在读", "学生证明", "在校证明", "学籍证明"],
-            "学籍信息卡": ["学籍信息卡", "学籍卡", "学籍信息", "学籍状态", "注册学籍"],
+            "学籍信息卡": ["学籍信息卡", "学籍卡", "学籍信息", "学籍状态", "注册学籍", "学籍在线验证报告", "在线验证报告", "预计毕业日期", "在线验证码", "学习形式", "学历类别"],
             "班级成员表": ["班级成员表", "班级成员", "成员名单", "班级名单", "班级表", "班级花名册", "序号", "班级", "姓名", "性别"],
             "住宿表": ["住宿表", "宿舍表", "宿舍名单", "住宿名单", "楼栋", "宿舍号", "寝室", "床位", "宿舍"],
+            "考试证书": ["合格证书", "证书编号", "校验码", "查询网址", "全国计算机等级考试", "Certificate Number"],
             "准考证": ["准考证", "准考证号", "报到时间", "考试时间", "考场号", "座位号", "英语四级", "英语六级", "CET"],
             "毕业证书/学历证书": ["毕业证书", "学历证书", "普通高等学校", "经审核准予毕业"],
             "录取凭证": ["录取通知书", "录取通知", "录取学校", "新生", "录取专业"],
@@ -2345,10 +2551,18 @@ class NLPService:
             "请假条": 2.2,
             "班级成员表": 1.0,
             "住宿表": 1.2,
+            "考试证书": 1.7,
             "准考证": 1.6,
+            "学籍信息卡": 1.5,
         }
         has_exam_keywords = any(
             k in text for k in ("准考证", "准考证号", "报到时间", "考试时间", "考场号", "座位号", "英语四级", "英语六级", "CET")
+        )
+        has_cert_keywords = any(
+            k in text for k in ("合格证书", "证书编号", "校验码", "查询网址", "全国计算机等级考试")
+        )
+        has_student_card_keywords = any(
+            k in text for k in ("学籍在线验证报告", "学籍状态", "预计毕业日期", "在线验证码", "学习形式", "学历类别")
         )
 
         scores: Dict[str, float] = {}
@@ -2371,9 +2585,17 @@ class NLPService:
                 total_score *= 0.1
             if has_exam_keywords and doc_type == "班级成员表":
                 total_score *= 0.15
+            if has_student_card_keywords and doc_type == "班级成员表":
+                total_score *= 0.2
             if has_roster_table and doc_type == "班级成员表":
                 total_score *= 1.8
             if has_exam_keywords and doc_type == "准考证":
+                total_score *= 1.8
+            if has_cert_keywords and doc_type == "考试证书":
+                total_score *= 1.8
+            if has_cert_keywords and doc_type == "准考证":
+                total_score *= 0.3
+            if has_student_card_keywords and doc_type == "学籍信息卡":
                 total_score *= 1.8
 
             scores[doc_type] = total_score

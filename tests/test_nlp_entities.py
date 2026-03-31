@@ -117,3 +117,61 @@ def test_admission_ticket_not_roster_and_template(nlp: NLPService):
     assert details.get("seat_no") == "28"
 
 
+def test_exam_certificate_not_admission_ticket(nlp: NLPService):
+    text = (
+        "全国计算机等级考试\n"
+        "二级合格证书\n"
+        "姓名：杨思雨\n"
+        "身份证件号：341282200212154935\n"
+        "准考证号：2468340019010107\n"
+        "证书编号：24683400186130\n"
+        "校验码：H5T0CS6HYAE5DOCV\n"
+        "查询网址：www.neea.edu.cn\n"
+    )
+    cls = nlp.classify_document(text)
+    assert cls.get("document_type") == "考试证书"
+
+    auto = nlp.infer_fields_auto(text)
+    tpl = auto.get("template_config") or {}
+    details = _slot_map((auto.get("extract_result") or {}).get("extract_details"))
+    assert tpl.get("template_id") == "auto-exam-certificate"
+    assert details.get("name") == "杨思雨"
+    assert details.get("id_number") == "341282200212154935"
+    assert details.get("certificate_id") == "24683400186130"
+    assert details.get("verify_code") == "H5T0CS6HYAE5DOCV"
+    assert details.get("verify_url") == "www.neea.edu.cn"
+
+
+def test_student_card_auto_template_and_fields(nlp: NLPService):
+    text = (
+        "教育部学籍在线验证报告\n"
+        "姓名\n周宇清\n"
+        "性别\n男\n"
+        "出生日期\n2002年11月20日\n"
+        "学校名称\n马鞍山学院\n"
+        "层次\n本科\n"
+        "专业\n软件工程\n"
+        "学历类别\n普通高等教育\n"
+        "学习形式\n普通全日制\n"
+        "分院\n大数据与人工智能学院\n"
+        "入学日期\n2024年09月07日\n"
+        "学籍状态\n在籍 (注册学籍)\n"
+        "预计毕业日期\n2026年07月01日\n"
+        "在线验证码AQT52ZQTS2RJWC0Q\n"
+        "在线查验网址：https://www.chsi.com.cn/xlcx/bgcx.jsp\n"
+    )
+    auto = nlp.infer_fields_auto(text)
+    tpl = auto.get("template_config") or {}
+    details = _slot_map((auto.get("extract_result") or {}).get("extract_details"))
+
+    assert tpl.get("template_id") == "auto-student-card"
+    assert details.get("name") == "周宇清"
+    assert details.get("gender") == "男"
+    assert details.get("school_name") == "马鞍山学院"
+    assert details.get("major") == "软件工程"
+    assert details.get("status") and "在籍" in details.get("status")
+    assert details.get("verify_url") == "https://www.chsi.com.cn/xlcx/bgcx.jsp"
+    # 关键防回归：不应把“姓名/层次”等标签词错误写入 class/college
+    assert details.get("college") != "层次"
+
+

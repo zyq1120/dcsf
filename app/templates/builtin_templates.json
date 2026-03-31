@@ -166,6 +166,20 @@
     ]
   },
   {
+    "template_id": "exam_certificate_v1",
+    "document_type": "考试证书",
+    "description": "考试合格证书（姓名/身份证/证书编号/校验码/查询网址）",
+    "priority": 10,
+    "match_keywords": ["合格证书", "证书编号", "校验码", "查询网址", "全国计算机等级考试", "Certificate Number"],
+    "required_fields": [
+      {"field_name": "name", "field_type": "PERSON", "description": "姓名"},
+      {"field_name": "id_number", "field_type": "ID_NUMBER", "description": "身份证件号"},
+      {"field_name": "certificate_id", "field_type": "CERT_ID", "description": "证书编号"},
+      {"field_name": "verify_code", "field_type": "TEXT", "description": "校验码"},
+      {"field_name": "verify_url", "field_type": "TEXT", "description": "查询网址"}
+    ]
+  },
+  {
     "template_id": "dormitory_table_v1",
     "document_type": "住宿表",
     "description": "学生住宿信息表（楼栋/宿舍号/床位/姓名/学号）",
