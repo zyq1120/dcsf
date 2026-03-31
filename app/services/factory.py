@@ -18,6 +18,30 @@ from app.services.llm_service import LLMService
 from app.services.final_ai_service import FinalAIService
 from app.services.paddle_ocr_service import PaddleOCRService, get_paddle_ocr_service
 
+
+class _NoopLLMService:
+    """Simple OCR mode stub: keeps FinalAIService wiring but never calls external LLM."""
+    enabled = False
+    provider = "nvidia"
+    model = "disabled"
+
+    def enhance_ocr(self, ocr_text, confidence, override=None):
+        return {
+            "enhanced": False,
+            "text": ocr_text,
+            "confidence": confidence,
+            "source": "ocr",
+        }
+
+    def extract_with_llm(self, text, template_config, override=None):
+        return None
+
+    def classify_with_llm(self, text, override=None):
+        return None
+
+    def extract_with_llm_image(self, file_content_b64, file_name, template_config, override=None):
+        return None
+
 # Module-level lock for thread-safe singleton creation
 # Using RLock to allow recursive calls from the same thread
 _lock = threading.RLock()
@@ -27,6 +51,7 @@ _ocr_instance: Optional[OCRService] = None
 _nlp_instance: Optional[NLPService] = None
 _llm_instance: Optional[LLMService] = None
 _final_ai_instance: Optional[FinalAIService] = None
+_noop_llm_instance: Optional[_NoopLLMService] = None
 
 
 def get_ocr_service() -> OCRService:
@@ -57,16 +82,20 @@ def preload_all_services():
     except Exception as e:
         logger.error(f"NLP Service warm-up failed: {e}")
 
-    # 2. 预加载 LLM 服务
+    from app.config import settings
+
+    # 2. 预加载 LLM 服务（Simple OCR 模式下跳过）
     try:
-        get_llm_service()
-        logger.info("LLM Service ready.")
+        if getattr(settings, "OCR_USE_SIMPLE_MODE", True):
+            logger.info("Skip LLM Service warm-up (OCR_USE_SIMPLE_MODE=true)")
+        else:
+            get_llm_service()
+            logger.info("LLM Service ready.")
     except Exception as e:
         logger.error(f"LLM Service warm-up failed: {e}")
 
     # 3. 预加载简洁版 PaddleOCR 服务（与 test_ocr.py 逻辑一致）
     try:
-        from app.config import settings
         if getattr(settings, "WARMUP_SIMPLE_OCR", True):
             logger.info("Warming up Simple PaddleOCR engine...")
             get_paddle_ocr_service()
@@ -111,12 +140,13 @@ def get_final_ai_service() -> FinalAIService:
         with _lock:
             if _final_ai_instance is None:
                 logger.info("Creating FinalAIService singleton")
+                llm_service = get_llm_service()
                 # OCR 初始化开销大、且可能未安装 paddleocr。延迟到真正需要 file_path 时再创建。
                 # 注意：OCRService 现在是“轻量外壳”，默认会走 Simple OCRService（已预热），只有表格/强制复杂时才加载重引擎。
                 _final_ai_instance = FinalAIService(
                     ocr_service=None,
                     nlp_service=get_nlp_service(),
-                    llm_service=get_llm_service(),
+                    llm_service=llm_service,
                     ocr_loader=OCRService,
                 )
 

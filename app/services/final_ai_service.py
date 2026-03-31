@@ -15,6 +15,7 @@ import hashlib
 from typing import Dict, Optional, List
 from loguru import logger
 
+from app.config import settings
 from app.utils.errors import ValidationError, ServiceError
 from app.services.ocr_service import OCRService
 from app.services.nlp_service import NLPService
@@ -102,6 +103,8 @@ class FinalAIService:
             options, dict) else False
         llm_image_opt = bool(options.get("llm_image")) if isinstance(
             options, dict) else False
+        ocr_fast_return = bool(options.get("ocr_fast_return")) if isinstance(
+            options, dict) else False
         llm_override = {}
         if isinstance(options, dict):
             if options.get("llm_provider"):
@@ -109,11 +112,24 @@ class FinalAIService:
                     options.get("llm_provider")).lower()
             if options.get("llm_model"):
                 llm_override["model"] = str(options.get("llm_model"))
+            if options.get("llm_vision_model"):
+                llm_override["vision_model"] = str(options.get("llm_vision_model"))
             if options.get("llm_api_key"):
                 llm_override["api_key"] = str(options.get("llm_api_key"))
         # 默认开启 LLM 兜底（只要未 disable_ai）；仍保留 llm_only 选项
         llm_allowed = not llm_disabled
         llm_available = self.llm_service.enabled and llm_allowed
+        explicit_llm_opt_in = llm_only or llm_image_opt
+        # 显式 llm_only/llm_image 优先：即使 Simple OCR 开启，也强制走大模型路径
+        if explicit_llm_opt_in and llm_allowed:
+            if not self.llm_service.enabled:
+                logger.warning("LLM forced on by explicit option (llm_only/llm_image)")
+                self.llm_service.enabled = True
+            llm_available = True
+            logger.info("Explicit LLM mode enabled", llm_only=llm_only, llm_image=llm_image_opt)
+        # Simple OCR 默认模式：禁用大模型
+        elif getattr(settings, "OCR_USE_SIMPLE_MODE", True):
+            llm_available = False
         file_content = payload.get("file_content")  # base64 字符串（前端上传图片时使用）
 
         temp_file_path = None
@@ -127,6 +143,10 @@ class FinalAIService:
                 file_content, payload.get("file_name"))
             file_path = temp_file_path
             cleanup_paths.append(temp_file_path)
+
+        # 显式 llm_only + 文件输入时，自动走多模态直读路径（不进入 OCR）
+        if llm_only and file_path:
+            llm_image_opt = True
 
         # 如果显式选择“直接读图”且 LLM 可用，优先走多模态直读，直接返回标准 JSON，跳过 OCR/NLP
         if llm_image_opt and llm_available and file_path:
@@ -160,6 +180,7 @@ class FinalAIService:
                     "extract_details": [],
                     "processing_time": 0,
                 }
+                llm_img = self._inject_extract_details_from_llm(llm_img, template_config)
                 merged_fields = self._merge_fields(base_fields, llm_img)
 
                 # 将多模态 LLM 的 doc_type 也统一通过 DocumentTypeService 走一遍
@@ -167,7 +188,7 @@ class FinalAIService:
                 if llm_img and llm_img.get("document_type"):
                     llm_cls_for_doc = {
                         "document_type": llm_img.get("document_type"),
-                        "confidence": float(llm_img.get("confidence_overall") or 0.0),
+                        "confidence": self._normalize_confidence(llm_img.get("confidence_overall")),
                         "probabilities": llm_img.get("document_type_candidates") or {},
                         "source": "llm_image",
                     }
@@ -186,7 +207,7 @@ class FinalAIService:
 
                 classification = {
                     "document_type": final_doc_type,
-                    "confidence": float(llm_img.get("confidence_overall") or 0.0),
+                    "confidence": self._normalize_confidence(llm_img.get("confidence_overall")),
                     "probabilities": doc_type_candidates,
                     "source": "llm_image",
                 }
@@ -215,6 +236,21 @@ class FinalAIService:
                     doc_type_candidates=doc_type_candidates,
                     primary_type=primary_type,
                 )
+                # 直读图像场景下，若结果为空壳或类型异常，打印返回内容片段便于调试
+                try:
+                    if resp and self._should_log_debug_snapshot(resp):
+                        logger.warning(
+                            "LLM image response debug snapshot",
+                            file_id=file_id,
+                            document_type=resp.get("document_type"),
+                            classification=resp.get("classification"),
+                            summary=resp.get("summary"),
+                            text_preview=(resp.get("text") or "")[:500],
+                            extract_main=resp.get("fields", {}).get("extract_main"),
+                            extract_details_sample=self._sample_extract_details(resp.get("fields", {}).get("extract_details"), 10),
+                        )
+                except Exception:
+                    pass
                 # 直接清理临时文件并返回
                 for tmp in cleanup_paths:
                     if tmp and os.path.exists(tmp):
@@ -224,7 +260,8 @@ class FinalAIService:
                             pass
                 return resp
             except Exception as exc:
-                logger.warning(f"LLM image path failed，fallback to OCR: {exc}")
+                logger.error(f"LLM image path failed: {exc}")
+                raise ServiceError("LLM 多模态解析失败", detail=str(exc))
 
         if not file_path and not text:
             raise ValidationError("必须提供 file_path 或 text 作为输入")
@@ -340,6 +377,7 @@ class FinalAIService:
                     )
 
                     if llm_img:
+                        llm_img = self._inject_extract_details_from_llm(llm_img, template_config)
                         base_fields = {
                             "file_id": file_id,
                             "template_id": template_config.get("template_id"),
@@ -359,7 +397,7 @@ class FinalAIService:
                         if llm_img.get("document_type"):
                             llm_cls_for_doc = {
                                 "document_type": llm_img.get("document_type"),
-                                "confidence": float(llm_img.get("confidence_overall") or 0.0),
+                                "confidence": self._normalize_confidence(llm_img.get("confidence_overall")),
                                 "probabilities": llm_img.get("document_type_candidates") or {},
                                 "source": "llm_image",
                             }
@@ -378,7 +416,7 @@ class FinalAIService:
 
                         classification = {
                             "document_type": final_doc_type,
-                            "confidence": float(llm_img.get("confidence_overall") or 0.0),
+                            "confidence": self._normalize_confidence(llm_img.get("confidence_overall")),
                             "probabilities": doc_type_candidates,
                             "source": "llm_image",
                         }
@@ -449,6 +487,10 @@ class FinalAIService:
                     template_config,
                     override=llm_override,
                 )
+                if llm_img_for_merge:
+                    llm_img_for_merge = self._inject_extract_details_from_llm(
+                        llm_img_for_merge, template_config
+                    )
 
                 if llm_img_for_merge:
                     if llm_img_for_merge.get("text"):
@@ -458,7 +500,7 @@ class FinalAIService:
                     if llm_img_for_merge.get("document_type"):
                         llm_cls_from_img = {
                             "document_type": llm_img_for_merge.get("document_type"),
-                            "confidence": float(llm_img_for_merge.get("confidence_overall") or 0.0),
+                            "confidence": self._normalize_confidence(llm_img_for_merge.get("confidence_overall")),
                             "probabilities": llm_img_for_merge.get("document_type_candidates") or {},
                             "source": "llm_image",
                         }
@@ -472,6 +514,71 @@ class FinalAIService:
         full_text = text
 
         self._log_text_preview("ocr_text", full_text)
+
+        # 如果显式启用 OCR 快速返回，且 OCR 质量良好，则直接返回（默认关闭）
+        ocr_conf = float(ocr_result.get("confidence") or 0) if ocr_result else 0
+        text_len = len(full_text.strip()) if full_text else 0
+        if (
+            ocr_fast_return
+            and
+            not llm_disabled 
+            and not llm_only 
+            and ocr_result 
+            and ocr_conf >= 0.7  # OCR 置信度足够高（70%）
+            and text_len >= 100  # OCR 文本足够长（100 字）
+            and ocr_result.get("total_boxes", 0) >= 5  # 至少识别到 5 个文本框
+        ):
+            logger.info(
+                "OCR quality sufficient, skipping NLP/LLM and returning directly",
+                ocr_confidence=ocr_conf,
+                text_length=text_len,
+                total_boxes=ocr_result.get("total_boxes"),
+            )
+            # 构造最终返回结果（仅使用 OCR 结果）
+            resp = {
+                "file_id": file_id,
+                "text": full_text,
+                "confidence_overall": ocr_conf,
+                "document_type": ocr_result.get("document_type") or "generic_document",
+                "classification": {
+                    "document_type": ocr_result.get("document_type") or "generic_document",
+                    "confidence": ocr_conf,
+                    "probabilities": {},
+                    "source": "ocr",
+                },
+                "fields": {
+                    "file_id": file_id,
+                    "extract_main": {
+                        "total_fields": len(template_config.get("fields", [])),
+                        "extracted_fields": 0,
+                        "confidence": 0,
+                        "status": "ocr_only",
+                    },
+                    "extract_details": [],
+                    "processing_time": ocr_result.get("processing_time", 0),
+                    "template_id": template_config.get("template_id"),
+                },
+                "basic_info": {},
+                "academic_info": {},
+                "certificate_info": {},
+                "financial_info": {},
+                "leave_info": {},
+                "courses": [],
+                "tables": [],
+                "summary": f"类型 {ocr_result.get('document_type') or '其他'}，置信度 {ocr_conf:.2f}，仅使用 OCR 识别结果",
+                "meta": {
+                    "file_id": file_id,
+                    "ocr_quality": "good",
+                    "stat_date": None,
+                },
+            }
+            logger.info(
+                "FinalAIService complete (OCR only, fast path)",
+                file_id=file_id,
+                confidence=ocr_conf,
+                processing_time=ocr_result.get("processing_time", 0),
+            )
+            return resp
 
         # 切分正文/表格区域供后续处理（仍保留全文用作 LLM 兜底）
         sections = self._split_text_sections(full_text)
@@ -683,6 +790,7 @@ class FinalAIService:
                         override=llm_override,
                     )
                     if llm_img:
+                        llm_img = self._inject_extract_details_from_llm(llm_img, template_config)
                         merged_fields = self._merge_fields(
                             merged_fields, llm_img)
                         # 如果图片直读带回课程且当前课程为空/噪声，尝试采用
@@ -708,7 +816,7 @@ class FinalAIService:
                 full_text, override=llm_override)
             if text_cls:
                 # 若已有多模态分类，选择置信度更高者
-                if llm_cls is None or float(text_cls.get("confidence", 0)) > float(llm_cls.get("confidence", 0)):
+                if llm_cls is None or self._normalize_confidence(text_cls.get("confidence")) > self._normalize_confidence(llm_cls.get("confidence")):
                     llm_cls = text_cls
             if llm_cls:
                 classification = llm_cls
@@ -771,6 +879,21 @@ class FinalAIService:
             doc_type_candidates=doc_type_candidates,
             primary_type=primary_type,
         )
+        # 常规流程下若出现“无有效类型/无字段”，打印返回内容用于线上调试
+        try:
+            if resp and self._should_log_debug_snapshot(resp):
+                logger.warning(
+                    "Final response debug snapshot",
+                    file_id=file_id,
+                    document_type=resp.get("document_type"),
+                    classification=resp.get("classification"),
+                    summary=resp.get("summary"),
+                    text_preview=(resp.get("text") or "")[:500],
+                    extract_main=resp.get("fields", {}).get("extract_main"),
+                    extract_details_sample=self._sample_extract_details(resp.get("fields", {}).get("extract_details"), 10),
+                )
+        except Exception:
+            pass
         # 缓存高置信度字段供后续相似文档复用
         if resp and resp.get("fields", {}).get("extract_details"):
             self._save_cache_entry(
@@ -804,6 +927,28 @@ class FinalAIService:
             if len(sample) >= limit:
                 break
         return sample
+
+    @staticmethod
+    def _has_structured_values(resp: Dict) -> bool:
+        for section in ("basic_info", "academic_info", "certificate_info", "financial_info", "leave_info"):
+            data = resp.get(section)
+            if isinstance(data, dict) and any(v not in (None, "", [], {}) for v in data.values()):
+                return True
+        return False
+
+    @classmethod
+    def _should_log_debug_snapshot(cls, resp: Dict) -> bool:
+        details = resp.get("fields", {}).get("extract_details") or []
+        has_details = bool(details)
+        text_len = len(str(resp.get("text") or "").strip())
+        summary_len = len(str(resp.get("summary") or "").strip())
+        has_structured = cls._has_structured_values(resp)
+        doc_type = str(resp.get("document_type") or "").strip().lower()
+        invalid_type = doc_type in {"", "generic_document", "unknown", "其他"}
+
+        # Only log snapshot when response is truly empty/invalid.
+        no_content = (not has_details) and text_len < 10 and summary_len < 5 and (not has_structured)
+        return no_content or (invalid_type and not has_details and not has_structured and text_len < 10)
 
     @staticmethod
     def _log_text_preview(label: str, text: Optional[str], limit: int = 400) -> None:
@@ -978,6 +1123,106 @@ class FinalAIService:
 
         return merged
 
+    @staticmethod
+    def _inject_extract_details_from_llm(llm_result: Dict, template_config: Dict) -> Dict:
+        """Convert LLM structured blocks into extract_details for unified field pipeline."""
+        if not isinstance(llm_result, dict):
+            return llm_result
+
+        existing = llm_result.get("extract_details") or []
+        if existing:
+            return llm_result
+
+        def _iter_pairs(section_name: str):
+            section = llm_result.get(section_name)
+            if isinstance(section, dict):
+                for k, v in section.items():
+                    yield k, v
+
+        details: List[Dict] = []
+        seen = set()
+
+        # Prefer template fields to keep output aligned with selected schema.
+        for f in (template_config or {}).get("fields", []):
+            name = f.get("name")
+            if not name:
+                continue
+            value = None
+            for sec in ("basic_info", "academic_info", "certificate_info", "financial_info", "leave_info"):
+                block = llm_result.get(sec)
+                if isinstance(block, dict) and name in block:
+                    value = block.get(name)
+                    break
+            details.append(
+                {
+                    "field_name": name,
+                    "field_type": f.get("type", "TEXT"),
+                    "field_value": value,
+                    "confidence": FinalAIService._normalize_confidence(llm_result.get("confidence_overall"), 0.8 if value is not None else 0.0),
+                    "status": "ok" if value is not None else "missing",
+                    "source": "llm_image",
+                }
+            )
+            seen.add(name)
+
+        # If no template or template misses keys, include non-null structured keys from LLM.
+        for sec in ("basic_info", "academic_info", "certificate_info", "financial_info", "leave_info"):
+            for key, value in _iter_pairs(sec):
+                if key in seen:
+                    continue
+                if value is None:
+                    continue
+                details.append(
+                    {
+                        "field_name": key,
+                        "field_type": "TEXT",
+                        "field_value": value,
+                        "confidence": FinalAIService._normalize_confidence(llm_result.get("confidence_overall"), 0.8),
+                        "status": "ok",
+                        "source": "llm_image",
+                    }
+                )
+                seen.add(key)
+
+        if details:
+            llm_result = dict(llm_result)
+            llm_result["extract_details"] = details
+            llm_result["extract_main"] = {
+                "total_fields": len((template_config or {}).get("fields", [])) if (template_config or {}).get("fields") else len(details),
+                "extracted_fields": sum(1 for d in details if d.get("field_value") is not None),
+                "confidence": FinalAIService._normalize_confidence(llm_result.get("confidence_overall")),
+                "status": "success" if any(d.get("field_value") is not None for d in details) else "failed",
+            }
+        return llm_result
+
+    @staticmethod
+    def _normalize_confidence(value, default: float = 0.0) -> float:
+        """Normalize confidence to 0~1, supporting '97%' / 97 / '0.97'."""
+        try:
+            if value is None:
+                return float(default)
+            if isinstance(value, str):
+                s = value.strip()
+                if not s:
+                    return float(default)
+                if s.endswith("%"):
+                    num = float(s[:-1].strip()) / 100.0
+                else:
+                    num = float(s)
+            else:
+                num = float(value)
+
+            # If value is like 97 (not 0.97), map to percentage.
+            if num > 1.0 and num <= 100.0:
+                num = num / 100.0
+            if num < 0:
+                return 0.0
+            if num > 1:
+                return 1.0
+            return num
+        except Exception:
+            return float(default)
+
     def _build_default_template(self) -> Dict:
         """
         默认模板：无须前端提供时，也能抽取常见字段。
@@ -1096,11 +1341,19 @@ class FinalAIService:
         fields_block = data.get("fields") or {}
         main = fields_block.get("extract_main") or {}
         extracted = main.get("extracted_fields") or 0
-        total_fields = main.get("total_fields") or len(
-            template_config.get("fields", [])) if template_config else 0
+        total_fields = main.get("total_fields") or (len(
+            template_config.get("fields", [])) if template_config else 0)
+        if not total_fields:
+            # In pure-LLM mode template may be empty; derive from available details.
+            total_fields = max(
+                int(extracted or 0),
+                len(fields_block.get("extract_details") or []),
+            )
         conf = float(main.get("confidence") or 0.0)
         status = "failed"
-        if extracted and extracted == total_fields:
+        if extracted and total_fields <= 0:
+            status = "success"
+        elif extracted and extracted == total_fields:
             status = "success"
         elif extracted and extracted < total_fields:
             status = "partial"
@@ -1144,6 +1397,10 @@ class FinalAIService:
         if ocr_analysis and ocr_analysis.get("reconstructed", {}).get("text"):
             cleaned_text = self._clean_text_for_output(
                 ocr_analysis["reconstructed"]["text"])
+        if not cleaned_text:
+            cleaned_text = self._clean_text_for_output(
+                data.get("text") or (data.get("ocr") or {}).get("text") or ""
+            )
 
         meta_block = {
             "file_id": data.get("file_id"),
@@ -1520,6 +1777,7 @@ class FinalAIService:
             "birth_date",
             "id_number",
             "student_id",
+            "ticket_no",
             "class",
             "major",
             "college",
@@ -1553,6 +1811,11 @@ class FinalAIService:
             "days",
             "approve_status",
             "issue_date",
+            "total_score",
+            "listening_score",
+            "reading_score",
+            "comprehensive_score",
+            "writing_translation_score",
             "reason",
         }
         flat = {k: None for k in flat_keys}
@@ -1575,6 +1838,15 @@ class FinalAIService:
             "loan_years": ["loan_years", "loan_term_month"],
             "scholarship_name": ["scholarship_name", "奖学金"],
             "scholarship_amount": ["scholarship_amount", "资助金额"],
+            "certificate_id": ["certificate_id", "number", "certificate_number", "证书编号", "成绩单编号"],
+            "issuer": ["issuer", "directed_by", "issued_by", "signing_authority", "签发单位", "委托发布单位"],
+            "issue_date": ["issue_date", "date", "exam_date", "考试时间"],
+            "ticket_no": ["ticket_no", "exam_id", "准考证号", "准考证"],
+            "total_score": ["total_score", "score", "总分"],
+            "listening_score": ["listening_score", "listening", "听力"],
+            "reading_score": ["reading_score", "reading", "阅读"],
+            "comprehensive_score": ["comprehensive_score", "comprehensive", "综合"],
+            "writing_translation_score": ["writing_translation_score", "writing", "写作和翻译"],
         }
         for target, aliases in alias_map.items():
             if flat.get(target):
@@ -2039,7 +2311,7 @@ class FinalAIService:
         # 贷款类判断：doc_type 优先，其次看候选概率（避免 doc_type=合同 时漏掉贷款合同）
         doc_type = (data.get("document_type") or data.get("basic_info", {}).get("document_type") or data.get("classification", {}).get("document_type") or "").strip() or data.get("document_type")
         is_loan_doc = (doc_type in ("生源地助学贷款合同", "贷款合同")) or (
-            float((doc_type_candidates or {}).get("生源地助学贷款合同", 0) or 0) > 0
+            float((doc_type_candidates or {}).get("生源地助学贷款", 0) or 0) > 0
             or float((doc_type_candidates or {}).get("贷款合同", 0) or 0) > float((doc_type_candidates or {}).get("合同", 0) or 0)
         )
 
@@ -2656,6 +2928,7 @@ class FinalAIService:
                 "birth_date",
                 "id_number",
                 "student_id",
+                "ticket_no",
                 "class",
                 "major",
                 "college",

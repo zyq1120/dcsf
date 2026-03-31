@@ -285,3 +285,41 @@ summary 示例（通用）：
 
 请严格遵守以上规则，最终只输出一个 JSON 对象，无任何多余说明。
 """
+
+
+# 用于多模态直读路径的精简提示词，减少长提示导致的超时概率。
+LLM_VISION_COMPACT_PROMPT = r"""
+你是高校文档结构化抽取助手。请直接阅读图片并输出一个合法 JSON 对象。
+
+硬约束：
+1) 只输出 JSON，不要解释、不要 Markdown。
+2) 字段必须严格包含以下键：
+academic_info,basic_info,certificate_info,confidence_overall,courses,document_type,financial_info,leave_info,summary,tables,text
+3) 子字段缺失统一填 null；数组缺失填 []。
+4) 禁止输出 code/message/debug/fields/document_type_candidates/meta/tables_raw 等额外字段。
+5) 禁止把“姓名/性别/学号/学校名称”等表头词当作字段值。
+6) 若图片可读，不允许返回“全字段 null + 空 text + 空 summary”的模板结果。
+7) text 必须尽量填写识别到的原文片段（至少 20 个字符，除非图片确实不可读）。
+8) summary 必须概括文档类型和至少 1 条关键信息（姓名/编号/学校/金额/日期等）。
+
+输出模板（键名不可变）：
+{
+  "academic_info": {"degree_level": null, "education_type": null, "enroll_date": null, "expected_grad_date": null, "status": null, "study_mode": null},
+  "basic_info": {"address": null, "birth_date": null, "class": null, "college": null, "contact": null, "gender": null, "id_number": null, "major": null, "name": null, "phone": null, "school_name": null, "student_id": null},
+  "certificate_info": {"certificate_id": null, "issue_date": null, "issuer": null, "verify_code": null, "verify_url": null},
+  "confidence_overall": 0.0,
+  "courses": [],
+  "document_type": "其他",
+  "financial_info": {"account_number": null, "bank_name": null, "loan_amount": null, "loan_years": null, "scholarship_amount": null, "scholarship_name": null},
+  "leave_info": {"approve_status": null, "days": null, "end_date": null, "issuer": null, "reason": null, "start_date": null},
+  "summary": "",
+  "tables": [],
+  "text": ""
+}
+
+提取优先级：
+- 先填 document_type、text、summary；
+- 再填 basic_info（name/id_number/student_id/school_name 等）；
+- 其余字段缺失再置 null。
+"""
+

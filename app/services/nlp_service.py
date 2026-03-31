@@ -359,13 +359,13 @@ class NLPService:
 
             template_fields = [
                 {"name": "ticket_no", "type": "TEXT", "required": False, "patterns": [r"(?:准考证号|准考证)[:：]?\s*([A-Za-z0-9]{8,20})"], "description": "准考证号"},
-                {"name": "name", "type": "PERSON", "required": False, "patterns": [r"姓名[:：]?\s*([A-Za-z\u4e00-\u9fa5]{2,8})"], "description": "姓名"},
+                {"name": "name", "type": "PERSON", "required": False, "patterns": [r"(?:姓\s*名|姓名)[:：]?\s*([A-Za-z\u4e00-\u9fa5]{2,8})"], "description": "姓名"},
                 {"name": "gender", "type": "TEXT", "required": False, "patterns": [r"性别[:：]?\s*(男|女)"], "description": "性别"},
                 {"name": "id_number", "type": "ID_NUMBER", "required": False, "patterns": [r"(?:证件号码|身份证号|身份证号码)[:：]?\s*(\d{17}[\dXx])"], "description": "证件号码"},
-                {"name": "school_name", "type": "ORG", "required": False, "patterns": [r"(?:所属学校|学校名称)[:：]?\s*([^\n]{2,40})"], "description": "所属学校"},
-                {"name": "class", "type": "CLASS", "required": False, "patterns": [r"(?:院系班级|班级)[:：]?\s*([^\n]{2,40})"], "description": "院系班级"},
+                {"name": "school_name", "type": "ORG", "required": False, "patterns": [r"(?:所属学校|学校名称|学\s*校)[:：]?\s*([^\n]{2,40})"], "description": "所属学校"},
+                {"name": "class", "type": "CLASS", "required": False, "patterns": [r"(?:院系班级|班级|院\s*[（(]?\s*系\s*[）)]?)[:：]?\s*([^\n]{2,40})"], "description": "院系班级"},
                 {"name": "student_id", "type": "STUDENT_ID", "required": False, "patterns": [r"学号[:：]?\s*([0-9]{6,12})"], "description": "学号"},
-                {"name": "exam_date", "type": "DATE", "required": False, "patterns": [r"考试日期[:：]?\s*([0-9]{4}[-/.年][0-9]{1,2}[-/.月][0-9]{1,2}日?)"], "description": "考试日期"},
+                {"name": "exam_date", "type": "DATE", "required": False, "patterns": [r"(?:考试日期|考试时间)[:：]?\s*([0-9]{4}[-/.年][0-9]{1,2}(?:[-/.月][0-9]{1,2}日?)?)"], "description": "考试日期"},
                 {"name": "report_time", "type": "TEXT", "required": False, "patterns": [r"报到时间[:：]?\s*([0-9]{1,2}:[0-9]{2})"], "description": "报到时间"},
                 {"name": "exam_time", "type": "TEXT", "required": False, "patterns": [r"考试时间[:：]?\s*([0-9]{1,2}:[0-9]{2}(?:\s*[-~]\s*[0-9]{1,2}:[0-9]{2})?)"], "description": "考试时间"},
                 {"name": "exam_site", "type": "TEXT", "required": False, "patterns": [r"考试地点[:：]?\s*([^\n]{2,80})"], "description": "考试地点"},
