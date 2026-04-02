@@ -28,6 +28,10 @@ class FinalAIService:
     # LLM 最终归一化指导提示，确保输出固定 JSON 结构
     LLM_NORMALIZE_PROMPT = DEFAULT_LLM_NORMALIZE_PROMPT
     LABEL_TOKENS = {
+        "序号",
+        "班级",
+        "姓名",
+        "性别",
         "开户行",
         "账户名称",
         "名称",
@@ -105,6 +109,8 @@ class FinalAIService:
             options, dict) else False
         ocr_fast_return = bool(options.get("ocr_fast_return")) if isinstance(
             options, dict) else False
+        llm_fallback_with_image = bool(options.get("llm_fallback_with_image", True)) if isinstance(
+            options, dict) else True
         llm_override = {}
         if isinstance(options, dict):
             if options.get("llm_provider"):
@@ -137,6 +143,7 @@ class FinalAIService:
         parsed_courses = []
         llm_img_for_merge = None
         llm_cls_from_img = None
+        prefetched_ocr_result = None
 
         if not file_path and file_content:
             temp_file_path = self._save_temp_file(
@@ -148,7 +155,8 @@ class FinalAIService:
         if llm_only and file_path:
             llm_image_opt = True
 
-        # 如果显式选择“直接读图”且 LLM 可用，优先走多模态直读，直接返回标准 JSON，跳过 OCR/NLP
+        # 如果显式选择“直接读图”且 LLM 可用，优先走多模态直读。
+        # 但在返回前会做一次 OCR 证据校验，避免视觉模型模板化幻觉直出。
         if llm_image_opt and llm_available and file_path:
             llm_img = None
             try:
@@ -168,97 +176,132 @@ class FinalAIService:
                 if not llm_img:
                     raise ServiceError("LLM 多模态解析失败", detail="未返回有效结果")
 
-                base_fields = {
-                    "file_id": file_id,
-                    "template_id": template_config.get("template_id"),
-                    "extract_main": {
-                        "total_fields": len(template_config.get("fields", [])),
-                        "extracted_fields": 0,
-                        "confidence": 0,
-                        "status": "failed",
-                    },
-                    "extract_details": [],
-                    "processing_time": 0,
-                }
-                llm_img = self._inject_extract_details_from_llm(llm_img, template_config)
-                merged_fields = self._merge_fields(base_fields, llm_img)
+                # 默认开启视觉结果落地校验：若与 OCR 证据冲突，回退正常 OCR+NLP 流程。
+                verify_vision = True
+                if isinstance(options, dict):
+                    verify_vision = bool(options.get("vision_grounding_check", True))
+                if verify_vision:
+                    try:
+                        from app.services.paddle_ocr_service import get_paddle_ocr_service
 
-                # 将多模态 LLM 的 doc_type 也统一通过 DocumentTypeService 走一遍
-                llm_cls_for_doc = None
-                if llm_img and llm_img.get("document_type"):
-                    llm_cls_for_doc = {
-                        "document_type": llm_img.get("document_type"),
+                        gate_ocr = get_paddle_ocr_service().recognize(file_path, options)
+                        gate_text = (gate_ocr or {}).get("text") or ""
+                        grounding = self._assess_llm_image_grounding(llm_img, gate_text)
+                        prefetched_ocr_result = gate_ocr
+                        if grounding.get("reject"):
+                            logger.warning(
+                                "LLM image rejected by grounding check; fallback to OCR+NLP",
+                                reason=grounding.get("reason"),
+                                coverage=grounding.get("coverage"),
+                                suspicious_ratio=grounding.get("suspicious_ratio"),
+                                llm_doc_type=(llm_img or {}).get("document_type"),
+                            )
+                            llm_img = None
+                        else:
+                            logger.info(
+                                "LLM image grounding check passed",
+                                coverage=grounding.get("coverage"),
+                                suspicious_ratio=grounding.get("suspicious_ratio"),
+                            )
+                    except Exception as exc:
+                        logger.warning(f"LLM image grounding check failed, fallback to OCR+NLP: {exc}")
+                        llm_img = None
+
+                if llm_img is None:
+                    llm_image_opt = False
+                else:
+
+                    base_fields = {
+                        "file_id": file_id,
+                        "template_id": template_config.get("template_id"),
+                        "extract_main": {
+                            "total_fields": len(template_config.get("fields", [])),
+                            "extracted_fields": 0,
+                            "confidence": 0,
+                            "status": "failed",
+                        },
+                        "extract_details": [],
+                        "processing_time": 0,
+                    }
+                    llm_img = self._inject_extract_details_from_llm(llm_img, template_config)
+                    merged_fields = self._merge_fields(base_fields, llm_img)
+
+                    # 将多模态 LLM 的 doc_type 也统一通过 DocumentTypeService 走一遍
+                    llm_cls_for_doc = None
+                    if llm_img and llm_img.get("document_type"):
+                        llm_cls_for_doc = {
+                            "document_type": llm_img.get("document_type"),
+                            "confidence": self._normalize_confidence(llm_img.get("confidence_overall")),
+                            "probabilities": llm_img.get("document_type_candidates") or {},
+                            "source": "llm_image",
+                        }
+
+                    doc_type_result = self.doc_type_service.detect(
+                        text=llm_img.get("text") or "",
+                        ocr_analysis=None,
+                        nlp_cls=None,
+                        llm_cls=llm_cls_for_doc,
+                    )
+                    final_doc_type = doc_type_result.get(
+                        "doc_type") or llm_img.get("document_type") or "generic_document"
+                    doc_type_candidates = doc_type_result.get(
+                        "candidates") or (llm_img.get("document_type_candidates") or {})
+                    primary_type = doc_type_result.get("primary_type")
+
+                    classification = {
+                        "document_type": final_doc_type,
                         "confidence": self._normalize_confidence(llm_img.get("confidence_overall")),
-                        "probabilities": llm_img.get("document_type_candidates") or {},
+                        "probabilities": doc_type_candidates,
                         "source": "llm_image",
                     }
 
-                doc_type_result = self.doc_type_service.detect(
-                    text=llm_img.get("text") or "",
-                    ocr_analysis=None,
-                    nlp_cls=None,
-                    llm_cls=llm_cls_for_doc,
-                )
-                final_doc_type = doc_type_result.get(
-                    "doc_type") or llm_img.get("document_type") or "generic_document"
-                doc_type_candidates = doc_type_result.get(
-                    "candidates") or (llm_img.get("document_type_candidates") or {})
-                primary_type = doc_type_result.get("primary_type")
-
-                classification = {
-                    "document_type": final_doc_type,
-                    "confidence": self._normalize_confidence(llm_img.get("confidence_overall")),
-                    "probabilities": doc_type_candidates,
-                    "source": "llm_image",
-                }
-
-                raw = {
-                    "file_id": file_id,
-                    "ocr": None,
-                    "fields": merged_fields,
-                    "generated_template": None,
-                    "courses": (llm_img or {}).get("courses") or [],
-                    "text": (llm_img or {}).get("text"),
-                    "entities": [],
-                    "relations": [],
-                    "classification": classification,
-                    "processing_time": 0,
-                    "text_sections": {"body_text": "", "table_text": ""},
-                    "ocr_analysis": None,
-                }
-                resp = self._finalize_response(
-                    raw,
-                    template_config,
-                    steps=["llm_image_only"],
-                    fail_reason=None,
-                    ocr_analysis=None,
-                    final_doc_type=final_doc_type,
-                    doc_type_candidates=doc_type_candidates,
-                    primary_type=primary_type,
-                )
-                # 直读图像场景下，若结果为空壳或类型异常，打印返回内容片段便于调试
-                try:
-                    if resp and self._should_log_debug_snapshot(resp):
-                        logger.warning(
-                            "LLM image response debug snapshot",
-                            file_id=file_id,
-                            document_type=resp.get("document_type"),
-                            classification=resp.get("classification"),
-                            summary=resp.get("summary"),
-                            text_preview=(resp.get("text") or "")[:500],
-                            extract_main=resp.get("fields", {}).get("extract_main"),
-                            extract_details_sample=self._sample_extract_details(resp.get("fields", {}).get("extract_details"), 10),
-                        )
-                except Exception:
-                    pass
-                # 直接清理临时文件并返回
-                for tmp in cleanup_paths:
-                    if tmp and os.path.exists(tmp):
-                        try:
-                            os.remove(tmp)
-                        except Exception:
-                            pass
-                return resp
+                    raw = {
+                        "file_id": file_id,
+                        "ocr": None,
+                        "fields": merged_fields,
+                        "generated_template": None,
+                        "courses": (llm_img or {}).get("courses") or [],
+                        "text": (llm_img or {}).get("text"),
+                        "entities": [],
+                        "relations": [],
+                        "classification": classification,
+                        "processing_time": 0,
+                        "text_sections": {"body_text": "", "table_text": ""},
+                        "ocr_analysis": None,
+                    }
+                    resp = self._finalize_response(
+                        raw,
+                        template_config,
+                        steps=["llm_image_only"],
+                        fail_reason=None,
+                        ocr_analysis=None,
+                        final_doc_type=final_doc_type,
+                        doc_type_candidates=doc_type_candidates,
+                        primary_type=primary_type,
+                    )
+                    # 直读图像场景下，若结果为空壳或类型异常，打印返回内容片段便于调试
+                    try:
+                        if resp and self._should_log_debug_snapshot(resp):
+                            logger.warning(
+                                "LLM image response debug snapshot",
+                                file_id=file_id,
+                                document_type=resp.get("document_type"),
+                                classification=resp.get("classification"),
+                                summary=resp.get("summary"),
+                                text_preview=(resp.get("text") or "")[:500],
+                                extract_main=resp.get("fields", {}).get("extract_main"),
+                                extract_details_sample=self._sample_extract_details(resp.get("fields", {}).get("extract_details"), 10),
+                            )
+                    except Exception:
+                        pass
+                    # 直接清理临时文件并返回
+                    for tmp in cleanup_paths:
+                        if tmp and os.path.exists(tmp):
+                            try:
+                                os.remove(tmp)
+                            except Exception:
+                                pass
+                    return resp
             except Exception as exc:
                 logger.error(f"LLM image path failed: {exc}")
                 raise ServiceError("LLM 多模态解析失败", detail=str(exc))
@@ -279,7 +322,7 @@ class FinalAIService:
             analyze_ocr=analysis_enabled,
         )
 
-        ocr_result = None
+        ocr_result = prefetched_ocr_result
         ocr_text_available = False
 
         # ===== OCR 阶段：不再在这里删除临时文件 =====
@@ -307,20 +350,30 @@ class FinalAIService:
 
             logger.debug("OCR stage: start",
                          normalized_path=file_path, options=options)
-            try:
-                ocr_result = self.ocr_service.recognize(file_path, options)
+            if ocr_result is None:
+                try:
+                    ocr_result = self.ocr_service.recognize(file_path, options)
+                    text = ocr_result.get("text", "")
+                    ocr_text_available = bool(text)
+                    logger.debug(
+                        "OCR raw output",
+                        characters=len(text),
+                        avg_confidence=ocr_result.get("confidence"),
+                        total_boxes=ocr_result.get("total_boxes", 0),
+                    )
+                except Exception as exc:
+                    detail = getattr(exc, 'detail', None) or str(exc)
+                    logger.error(f"OCR 识别失败（已尝试所有降级策略）: {detail}")
+                    raise ServiceError("OCR 识别失败", detail=detail)
+            else:
                 text = ocr_result.get("text", "")
                 ocr_text_available = bool(text)
-                logger.debug(
-                    "OCR raw output",
-                    characters=len(text),
-                    avg_confidence=ocr_result.get("confidence"),
+                logger.info(
+                    "OCR reused from grounding check",
+                    file_path=file_path,
+                    confidence=ocr_result.get("confidence"),
                     total_boxes=ocr_result.get("total_boxes", 0),
                 )
-            except Exception as exc:
-                detail = getattr(exc, 'detail', None) or str(exc)
-                logger.error(f"OCR 识别失败（已尝试所有降级策略）: {detail}")
-                raise ServiceError("OCR 识别失败", detail=detail)
 
             # LLM 纠错提升 OCR 结果
             if llm_available and ocr_text_available:
@@ -687,6 +740,18 @@ class FinalAIService:
         if cached_candidates:
             candidate_fields = (candidate_fields or []) + cached_candidates
 
+        llm_fallback_ocr_context = self._build_llm_fallback_ocr_context(
+            ocr_result=ocr_result,
+            ocr_analysis=ocr_analysis,
+            nlp_fields=nlp_fields,
+        )
+        llm_fallback_image_b64 = None
+        if llm_fallback_with_image and file_path and llm_available:
+            try:
+                llm_fallback_image_b64 = file_content or self._file_to_base64(file_path)
+            except Exception as exc:
+                logger.warning(f"准备 LLM 兜底图像失败，将仅文本兜底: {exc}")
+
         # 确保 nlp_fields 至少有基本结构，避免空指针
         if nlp_fields is None:
             nlp_fields = {
@@ -712,7 +777,15 @@ class FinalAIService:
             logger.info("LLM only mode enabled",
                         provider=self.llm_service.provider, model=self.llm_service.model)
             llm_fallback = self.llm_service.extract_with_llm(
-                llm_input_text, template_config, override=llm_override)
+                llm_input_text,
+                template_config,
+                override=llm_override,
+                ocr_context=llm_fallback_ocr_context,
+                file_content_b64=llm_fallback_image_b64,
+                file_name=os.path.basename(file_path) if file_path else None,
+            )
+            if llm_fallback and not llm_fallback.get("extract_details"):
+                llm_fallback = self._inject_extract_details_from_llm(llm_fallback, template_config)
             merged_fields = self._merge_fields(
                 {
                     "file_id": file_id,
@@ -745,7 +818,15 @@ class FinalAIService:
                     model=self.llm_service.model,
                 )
                 llm_fallback = self.llm_service.extract_with_llm(
-                    llm_input_text, template_config, override=llm_override)
+                    llm_input_text,
+                    template_config,
+                    override=llm_override,
+                    ocr_context=llm_fallback_ocr_context,
+                    file_content_b64=llm_fallback_image_b64,
+                    file_name=os.path.basename(file_path) if file_path else None,
+                )
+                if llm_fallback and not llm_fallback.get("extract_details"):
+                    llm_fallback = self._inject_extract_details_from_llm(llm_fallback, template_config)
                 if llm_fallback:
                     logger.info("LLM fallback used", model=self.llm_service.model,
                                 provider=self.llm_service.provider)
@@ -973,6 +1054,75 @@ class FinalAIService:
             doc_type=llm_result.get("document_type") or (
                 llm_result.get("classification") or {}).get("document_type"),
         )
+
+    @classmethod
+    def _is_label_like_value(cls, value: Optional[str]) -> bool:
+        if not value:
+            return False
+        s = re.sub(r"\s+", "", str(value)).replace("：", "").replace(":", "")
+        if not s:
+            return False
+        if s in cls.LABEL_TOKENS:
+            return True
+        return len(s) <= 6 and not any(ch.isdigit() for ch in s) and any(k in s for k in ("姓名", "班级", "专业", "学院", "联系方式", "联系电话"))
+
+    @classmethod
+    def _assess_llm_image_grounding(cls, llm_img: Dict, ocr_text: str) -> Dict:
+        """
+        基于 OCR 证据评估视觉模型输出是否可信：
+        - coverage: 字段值在 OCR 文本中的命中率
+        - suspicious_ratio: 疑似“表头/模板词”占比
+        """
+        details = (llm_img or {}).get("extract_details") or []
+        ocr_compact = re.sub(r"\s+", "", ocr_text or "")
+
+        considered = 0
+        matched = 0
+        suspicious = 0
+
+        for d in details:
+            raw = d.get("field_value")
+            if raw in (None, "", [], {}):
+                continue
+            value = re.sub(r"\s+", "", str(raw))
+            if len(value) < 2:
+                continue
+
+            considered += 1
+            if cls._is_label_like_value(value):
+                suspicious += 1
+                continue
+
+            if value and value in ocr_compact:
+                matched += 1
+            elif d.get("field_type") in ("PERSON", "CLASS", "ID_NUMBER", "PHONE", "STUDENT_ID"):
+                suspicious += 1
+
+        coverage = (matched / considered) if considered else 0.0
+        suspicious_ratio = (suspicious / considered) if considered else 0.0
+
+        # 要求至少有一定证据命中；样本越多，越严格。
+        reject = False
+        reason = "ok"
+        if considered >= 3 and coverage < 0.35:
+            reject = True
+            reason = "low_ocr_evidence_coverage"
+        if considered >= 3 and suspicious_ratio >= 0.5:
+            reject = True
+            reason = "high_header_like_ratio"
+        if considered == 0:
+            reject = True
+            reason = "no_structured_fields"
+
+        return {
+            "reject": reject,
+            "reason": reason,
+            "coverage": round(coverage, 4),
+            "suspicious_ratio": round(suspicious_ratio, 4),
+            "considered": considered,
+            "matched": matched,
+            "suspicious": suspicious,
+        }
 
     def _validate_file_path(self, file_path: str) -> str:
         """
@@ -1673,6 +1823,41 @@ class FinalAIService:
         # 指导 LLM 输出统一归一化 JSON
         parts.append("【NORMALIZE_GUIDE】\n" + self.LLM_NORMALIZE_PROMPT.strip())
         return "\n\n".join(parts)
+
+    @staticmethod
+    def _build_llm_fallback_ocr_context(
+        ocr_result: Optional[Dict],
+        ocr_analysis: Optional[Dict],
+        nlp_fields: Optional[Dict],
+    ) -> Dict:
+        """构造精简 OCR 证据 JSON，供 LLM 兜底时与原图联合参考。"""
+        ocr = ocr_result or {}
+        analysis = ocr_analysis or {}
+        nlp = nlp_fields or {}
+        text = str(ocr.get("text") or "")
+        preview = text[:2000]
+        details = (nlp.get("extract_details") or [])[:30]
+        return {
+            "ocr": {
+                "confidence": ocr.get("confidence"),
+                "total_boxes": ocr.get("total_boxes"),
+                "source": ocr.get("source"),
+                "text_preview": preview,
+                "table_plain_preview": str(ocr.get("table_plain") or "")[:1000],
+            },
+            "analysis": {
+                "document_type": (analysis.get("document_type") or {}).get("document_type")
+                if isinstance(analysis.get("document_type"), dict)
+                else analysis.get("document_type"),
+                "ocr_quality": analysis.get("ocr_quality"),
+                "ocr_problems": (analysis.get("ocr_problems") or [])[:10],
+                "key_value_pairs": (analysis.get("key_value_pairs") or [])[:25],
+            },
+            "nlp": {
+                "extract_main": nlp.get("extract_main") or {},
+                "extract_details": details,
+            },
+        }
 
     def _validate_and_fix_fields(self, details: List[Dict]) -> List[Dict]:
         """

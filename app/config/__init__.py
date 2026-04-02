@@ -31,7 +31,7 @@ class Settings:
     # Flask
     ENV = _env("FLASK_ENV", "development")
     DEBUG = _env_bool("FLASK_DEBUG", True)
-    PORT = _env_int("OCR_SERVICE_PORT", 5005)
+    PORT = _env_int("OCR_SERVICE_PORT", 5006)
 
     # Paths
     MODEL_PATH = _env("MODEL_PATH", "./models")

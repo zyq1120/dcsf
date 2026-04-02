@@ -1,11 +1,10 @@
-version: "3.9"
 
 services:
   ai-service:
     build: . 
     container_name: document-classification-flask
     ports:
-      - "${OCR_SERVICE_PORT:-5005}:5005"
+      - "${OCR_SERVICE_PORT:-5006}:5006"
     environment:
       TZ: Asia/Shanghai
     volumes:

@@ -1,0 +1,31 @@
+# VCS / IDE
+.git
+.gitignore
+.idea
+
+# Python cache / virtual env
+__pycache__/
+*.py[cod]
+*.pyo
+*.pyd
+.pytest_cache/
+.mypy_cache/
+venv/
+.venv/
+
+# Runtime artifacts
+logs/
+*.log
+
+# Local docs and tests not needed in runtime image
+tests/
+coverage*
+*.whl
+
+# Local environment files
+.env
+.env.*
+
+# OS noise
+.DS_Store
+

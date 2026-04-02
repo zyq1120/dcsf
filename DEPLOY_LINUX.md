@@ -158,7 +158,7 @@ PaddleOCR 在部分环境下可能会因为线程与底层算子选择导致偶�
 
 ```bash
 source venv/bin/activate
-gunicorn -w 4 -k gthread --threads 1 -b 0.0.0.0:5005 app:app
+gunicorn -w 4 -k gthread --threads 1 -b 0.0.0.0:5006 app:app
 ```
 
 > 如果你使用 `create_app` 工厂模式，请改为对应入口（例如 `app:create_app()` 的 WSGI 包装）。
@@ -184,7 +184,7 @@ Type=simple
 WorkingDirectory=/opt/document_classification_system_flask
 
 EnvironmentFile=/opt/document_classification_system_flask/.env
-ExecStart=/opt/document_classification_system_flask/venv/bin/gunicorn -w 4 -k gthread --threads 1 -b 0.0.0.0:5005 app:app
+ExecStart=/opt/document_classification_system_flask/venv/bin/gunicorn -w 4 -k gthread --threads 1 -b 0.0.0.0:5006 app:app
 Restart=always
 RestartSec=3
 
@@ -277,9 +277,9 @@ docker-compose up -d
 健康检查：
 
 ```bash
-curl -s http://127.0.0.1:5005/health
-curl -s http://127.0.0.1:5005/api/v1/health
-curl -s http://127.0.0.1:5005/api/v1/ocr/health
+curl -s http://127.0.0.1:5006/health
+curl -s http://127.0.0.1:5006/api/v1/health
+curl -s http://127.0.0.1:5006/api/v1/ocr/health
 ```
 
 核心接口：

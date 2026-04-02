@@ -452,8 +452,11 @@ class LLMService:
         text: str,
         template_config: Dict,
         override: Optional[Dict] = None,
+        ocr_context: Optional[Dict] = None,
+        file_content_b64: Optional[str] = None,
+        file_name: Optional[str] = None,
     ) -> Optional[Dict]:
-        """基于纯文本的字段兜底抽取，输出 {"extract_details":[...]}。"""
+        """字段兜底抽取：默认纯文本；若携带图片则走多模态并融合 OCR 上下文。"""
         if not self.enabled:
             return None
 
@@ -469,6 +472,32 @@ class LLMService:
             "1) 缺失用 null；2) 不要返回 NaN/undefined；3) confidence 0~1；4) 只输出 JSON。\n"
             f"字段列表：\n{field_desc}\n文本：\n{text}"
         )
+
+        # 文件场景：将 OCR 证据 JSON + 原图一起交给多模态模型做兜底。
+        if file_content_b64:
+            ocr_context = ocr_context or {}
+            ocr_context_json = json.dumps(ocr_context, ensure_ascii=False)[:5000]
+            vision_prompt = (
+                _VISION_PROMPT
+                + "\n\n【当前任务】这是 LLM 兜底场景。请优先依据 OCR 与规则抽取证据，不要编造。"
+                + "\n输出要求：仅输出 JSON；未知填 null；当图片与 OCR 冲突时，以图片可见事实为准，并在 text 中保留可确认信息。"
+                + f"\n\n【模板字段】\n{field_desc or '(未提供模板字段)'}"
+                + f"\n\n【OCR_兜底上下文_JSON】\n{ocr_context_json}"
+                + f"\n\n【OCR_清洗文本】\n{text[:5000]}"
+            )
+            response: Optional[str] = None
+            try:
+                response = self._call_vision(vision_prompt, file_content_b64, file_name, override=override)
+                self._log_raw_response("LLM fallback vision raw response", response)
+                parsed = self._parse_json_dict_response(response)
+                if not parsed:
+                    parsed = self._repair_json_with_llm(response, override=override)
+                if not parsed:
+                    return None
+                return self._normalize_llm_image_result(parsed)
+            except Exception as exc:
+                logger.warning(f"LLM fallback with image failed, downgrade to text-only: {exc}")
+
         try:
             raw = self._call_llm(prompt, override=override)
             return self._parse_json_dict_response(raw)

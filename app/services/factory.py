@@ -33,7 +33,7 @@ class _NoopLLMService:
             "source": "ocr",
         }
 
-    def extract_with_llm(self, text, template_config, override=None):
+    def extract_with_llm(self, text, template_config, override=None, ocr_context=None, file_content_b64=None, file_name=None):
         return None
 
     def classify_with_llm(self, text, override=None):
