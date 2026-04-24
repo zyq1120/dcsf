@@ -49,7 +49,16 @@ _BASIC_INFO_PLACEHOLDERS = frozenset({
     "[学校名称]", "[学院]", "[专业]", "[班级]",
 })
 
-_NON_RETRYABLE_KEYWORDS = ("配额不足", "Quota", "RateLimit", "api_key 未配置", "免费额度已用完")
+_NON_RETRYABLE_KEYWORDS = (
+    "配额不足",
+    "Quota",
+    "RateLimit",
+    "api_key 未配置",
+    "免费额度已用完",
+    "404",
+    "Not Found",
+    "404 Client Error",
+)
 
 # ─── Vision 少样本提示词（抽为模块级常量，避免每次调用重建）────────────────
 
@@ -624,6 +633,38 @@ class LLMService:
             logger.info("LLM connectivity ok", provider=self.provider, sample=str(resp)[:20])
         except Exception as exc:
             logger.warning(f"LLM connectivity check failed: {exc}")
+
+    def probe_connectivity(self) -> Dict[str, object]:
+        """主动探测 LLM 连通性，供健康检查/管理界面使用。"""
+        result: Dict[str, object] = {
+            "provider": self.provider,
+            "enabled": bool(self.enabled),
+            "model": self.model_text,
+            "vision_model": self.model_vision,
+            "endpoint": self._resolve_base_url(),
+            "connected": False,
+        }
+
+        if not self.enabled:
+            result["reason"] = "LLM 已禁用"
+            return result
+        if not self.api_key:
+            result["reason"] = "LLM API key 未配置"
+            return result
+
+        timeout = min(self.timeout, 8) if self.timeout else 8
+        try:
+            sample = self._call_text("返回 ok", timeout=timeout)
+            result.update(
+                {
+                    "connected": True,
+                    "sample": str(sample)[:80],
+                }
+            )
+            return result
+        except Exception as exc:
+            result["reason"] = str(exc)
+            return result
 
     # ──────────────────────────────────────────────────────────────────────────
     # 内部：LLM 调用层

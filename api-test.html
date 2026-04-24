@@ -500,6 +500,9 @@
             <button class="btn primary" onclick="processDocument()" id="runBtn">
               开始处理
             </button>
+            <button class="btn" onclick="checkLlmAvailability()" id="probeBtn">
+              检查 NVIDIA 可用性
+            </button>
             <button class="btn" onclick="resetAll()">重置</button>
           </div>
         </div>
@@ -714,6 +717,42 @@
           showToast("调用失败：" + err.message, "error");
         } finally {
           toggleLoading(false);
+        }
+      }
+
+      async function checkLlmAvailability() {
+        const baseUrl = document.getElementById("baseUrl").value.trim();
+        const probeBtn = document.getElementById("probeBtn");
+        probeBtn.disabled = true;
+        jsonOutput.textContent = "正在检查 NVIDIA LLM 可用性...";
+        try {
+          const resp = await fetch(`${baseUrl}/api/v1/llm/health`);
+          const data = await resp.json();
+          const payload = data.data ?? data;
+          const jsonStr = JSON.stringify(data, null, 2);
+          jsonOutput.innerHTML = jsonStr.replace(
+            /("(\\u[a-zA-Z0-9]{4}|\\[^u]|[^\\"])*"(\\s*:)?|\\b(true|false|null)\\b|-?\\d+(?:\\.\\d*)?(?:[eE][\\+\\-]?\\d+)?)/g,
+            (match) => {
+              let cls = "number";
+              if (/^"/.test(match)) {
+                cls = /:$/.test(match) ? "key" : "string";
+              } else if (/true|false/.test(match)) {
+                cls = "boolean";
+              } else if (/null/.test(match)) {
+                cls = "null";
+              }
+              return `<span class="${cls}">${match}</span>`;
+            }
+          );
+          showToast(
+            payload.connected ? "NVIDIA 可用" : "NVIDIA 不可用或未配置",
+            payload.connected ? "success" : "error"
+          );
+        } catch (err) {
+          jsonOutput.textContent = `检查失败：${err.message}`;
+          showToast("检查失败：" + err.message, "error");
+        } finally {
+          probeBtn.disabled = false;
         }
       }
 

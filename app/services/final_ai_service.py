@@ -304,7 +304,16 @@ class FinalAIService:
                     return resp
             except Exception as exc:
                 logger.error(f"LLM image path failed: {exc}")
-                raise ServiceError("LLM 多模态解析失败", detail=str(exc))
+                # 直读图像是增强路径，不应因为 LLM 端点 404 / 配置错误就直接把整条请求打成 500。
+                # 当未显式要求 llm_only 时，回退到后续 OCR+NLP 主流程；若用户强制只走 LLM，则保留失败。
+                if not llm_only and llm_fallback_with_image and file_path:
+                    logger.warning(
+                        "LLM image path failed; fallback to OCR+NLP",
+                        error=str(exc),
+                    )
+                    llm_image_opt = False
+                else:
+                    raise ServiceError("LLM 多模态解析失败", detail=str(exc))
 
         if not file_path and not text:
             raise ValidationError("必须提供 file_path 或 text 作为输入")

@@ -1,4 +1,5 @@
 from flask import Blueprint, jsonify
+from app.services.factory import get_llm_service
 from app.utils.response import ok
 
 health_bp = Blueprint("health", __name__)
@@ -25,3 +26,15 @@ def ocr_health():
 @health_bp.route("/api/v1/nlp/health", methods=["GET"])
 def nlp_health():
     return jsonify(ok({"status": "healthy", "service": "nlp"}))
+
+
+@health_bp.route("/api/v1/llm/health", methods=["GET"])
+def llm_health():
+    try:
+        svc = get_llm_service()
+        probe = svc.probe_connectivity()
+        status = "healthy" if probe.get("connected") else "degraded"
+        return jsonify(ok({"status": status, "service": "llm", **probe}))
+    except Exception as exc:
+        return jsonify(ok({"status": "degraded", "service": "llm", "connected": False, "reason": str(exc)}))
+
